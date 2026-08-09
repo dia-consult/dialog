@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="interactions.css" />
     <link rel="stylesheet" href="settings-order.css" />
     <link rel="stylesheet" href="custom-role.css" />
+    <link rel="stylesheet" href="role-permissions.css" />
     <link rel="stylesheet" href="referral.css" />
+    <link rel="stylesheet" href="openrouter-settings.css" />
   </head>
   <body>
     <main class="app-shell">
@@ -47,6 +49,15 @@
               <article class="card profile-card"><div class="avatar-large">D<span></span></div><h3>Dia Consulting</h3><p>Аналітика продажів та клієнтських діалогів</p><button class="dark-button">Змінити аватар</button></article>
               <form class="card account-form"><label>Назва компанії<input value="Dia Consulting" /></label><label>Короткий опис<textarea>Допомагаємо командам підвищувати якість продажів через аналіз дзвінків і листування.</textarea></label><div class="form-row"><label>Мова<select><option>Українська</option></select></label><label>Часовий пояс<select><option>Europe / Kyiv</option></select></label></div><button type="button" class="lime-button save">Зберегти зміни</button></form>
             </div>
+            <article class="card provider-card" aria-labelledby="openrouter-title">
+              <div class="provider-icon" aria-hidden="true">OR</div>
+              <div class="provider-copy"><p class="eyebrow">AI-ПРОВАЙДЕР</p><h3 id="openrouter-title">OpenRouter API</h3><p>Підключіть власний ключ для обробки аудіо та формування DIA-порад. Ключ передається лише на сервер і ніколи не показується команді.</p></div>
+              <form class="provider-form" id="openrouter-form">
+                <label for="openrouter-key">API-ключ OpenRouter</label>
+                <div class="secret-input"><input id="openrouter-key" name="openrouter-key" type="password" autocomplete="off" placeholder="sk-or-v1-…" spellcheck="false" /><button type="button" class="secret-toggle" aria-label="Показати ключ" aria-pressed="false">◉</button></div>
+                <div class="provider-actions"><span class="connection-state" id="openrouter-state">Не підключено</span><button type="submit" class="lime-button">Зберегти ключ</button></div>
+              </form>
+            </article>
           </section>
 
           <section class="settings-panel" data-settings-panel="team">
