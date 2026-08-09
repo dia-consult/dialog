@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dialog — якість продажів</title>
+    <link rel="stylesheet" href="mvp-preview.css" />
+    <link rel="stylesheet" href="mvp-font.css" />
+    <link rel="stylesheet" href="mvp-motion.css" />
+    <link rel="stylesheet" href="unified-layout.css" />
+    <link rel="stylesheet" href="interactions.css" />
+    <link rel="stylesheet" href="overview-actions.css" />
+    <link rel="stylesheet" href="manager-analytics.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#overview" aria-label="Dialog">
+          <span class="brand-symbol"><img src="assets/dialog-logo-mark-trimmed.png" alt="" /></span>
+          <svg class="brand-word" viewBox="0 0 112 36" aria-hidden="true">
+            <defs><clipPath id="brand-dia-clip"><rect x="0" y="0" width="38" height="36" /></clipPath></defs>
+            <text x="0" y="29" fill="#f7f8fb" font-family="Manrope, Inter, Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-2">dialog</text>
+            <text x="0" y="29" fill="#bafb28" clip-path="url(#brand-dia-clip)" font-family="Manrope, Inter, Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-2">dialog</text>
+          </svg>
+        </a>
+        <nav class="nav-pills" aria-label="Основна навігація">
+          <a class="active" href="#overview">Огляд</a>
+          <a href="dialogs-list.html">Діалоги</a>
+          <a href="settings-preview.html">Налаштування</a>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-button" aria-label="Сповіщення">⌁</button>
+          <button class="avatar" aria-label="Профіль Dia Consulting">D</button>
+        </div>
+      </header>
+
+      <section class="page-heading" id="overview">
+        <div>
+          <p class="eyebrow">ОГЛЯД ЗА ТИЖДЕНЬ</p>
+          <h1>Якість продажів</h1>
+          <p class="page-copy">86 дзвінків і листувань опрацьовано — фокус на діалогах, які можна покращити.</p>
+        </div>
+        <button class="period-button">Цей тиждень <span>⌄</span></button>
+      </section>
+
+      <section class="overview-grid" aria-label="Ключові показники">
+        <article class="overview-card score-card" data-card-link="dialogs-list.html" role="link" tabindex="0">
+          <p class="metric-label">ЯКІСТЬ КОМУНІКАЦІЙ</p>
+          <div class="score-content">
+            <div><strong>72%</strong><p class="positive">↑ 6% <span>за цей тиждень</span></p></div>
+            <div class="ring" aria-label="72 відсотки"><span>72</span></div>
+          </div>
+        </article>
+        <article class="overview-card" data-card-link="dialogs-list.html" role="link" tabindex="0">
+          <p class="metric-label">ПОТРЕБУЮТЬ УВАГИ</p>
+          <strong class="metric">12</strong>
+          <div class="card-footer"><p class="negative">5 критичних</p></div>
+        </article>
+        <article class="overview-card" data-card-link="dialogs-list.html?filter=cross-sell" role="link" tabindex="0">
+          <p class="metric-label">ПОТЕНЦІАЛ ДОПРОДАЖІВ</p>
+          <strong class="metric money">$4 800</strong>
+          <p class="accent-copy">8 клієнтів для cross-sell</p>
+        </article>
+      </section>
+
+      <aside class="insight">
+        <div class="spark">✦</div>
+        <div class="insight-copy"><p class="eyebrow">ГОЛОВНИЙ ІНСАЙТ</p><h2>Менеджери добре презентують рішення, але слабко виявляють потреби.</h2><p>У 8 діалогах не уточнили бюджет або терміни ухвалення рішення.</p></div>
+        <button class="lime-button">Відкрити 8 прикладів <span>↗</span></button>
+      </aside>
+
+      <section class="manager-analytics" aria-labelledby="manager-analytics-title">
+        <div class="analytics-heading"><div><p class="eyebrow">АНАЛІТИКА КОМАНДИ</p><h2 id="manager-analytics-title">Якість роботи менеджерів</h2><p>Середня оцінка навичок і зміна відносно попереднього періоду.</p></div><div class="range-tabs" role="tablist"><button>День</button><button class="active">Тиждень</button><button>Місяць</button><button>Рік</button></div></div>
+        <div class="analytics-summary"><article><span>Середня якість команди</span><strong>72%</strong><b>↑ 6% <em>до минулого тижня</em></b></article><article><span>Менеджер із найбільшим приростом</span><strong>Анна К.</strong><b>↑ 14% <em>за місяць</em></b></article><article><span>Навичка, що росте найшвидше</span><strong>Робота із запереченнями</strong><b>↑ 9% <em>до попереднього місяця</em></b></article></div>
+        <div class="manager-table"><div class="manager-table-head"><span>Менеджер</span><span>Середня якість</span><span>Динаміка навичок</span><span>Останній період</span></div><div class="manager-line"><div><i class="manager-dot anna">АК</i><b>Анна К.</b><small>32 діалоги</small></div><strong>83%</strong><div class="trend up"><i style="height:24%"></i><i style="height:35%"></i><i style="height:42%"></i><i style="height:58%"></i><i style="height:71%"></i><b>+14%</b></div><span class="excellent">Стабільне зростання</span></div><div class="manager-line"><div><i class="manager-dot olha">ОМ</i><b>Ольга М.</b><small>25 діалогів</small></div><strong>74%</strong><div class="trend up"><i style="height:33%"></i><i style="height:38%"></i><i style="height:39%"></i><i style="height:48%"></i><i style="height:51%"></i><b>+6%</b></div><span class="excellent">Покращує презентацію</span></div><div class="manager-line"><div><i class="manager-dot dmytro">ДП</i><b>Дмитро П.</b><small>18 діалогів</small></div><strong>61%</strong><div class="trend down"><i style="height:58%"></i><i style="height:50%"></i><i style="height:43%"></i><i style="height:38%"></i><i style="height:31%"></i><b>−5%</b></div><span class="needs">Потрібен коучинг: потреби</span></div></div>
+      </section>
+
+    </main>
+    <script src="interactions.js"></script>
+  </body>
+</html>

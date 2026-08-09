@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="720" viewBox="0 0 900 720">
+  <rect width="900" height="720" rx="56" fill="#0b1320"/>
+  <path fill="#ffffff" fill-opacity=".58" d="M452 105c11 0 20 6 28 16l29 34c19 23 47 31 75 23l177-52c51-15 96 24 96 77v238c0 37-24 70-59 80l-260 76c-27 8-54-12-54-40V129c0-13-12-24-32-24Z"/>
+  <path fill="#bafb28" fill-opacity=".94" d="M165 269c0-42 28-75 68-87l190-56c55-16 108 25 108 82v308c0 36-23 68-57 78l-122 36c-19 6-37 20-52 38l-31 37c-11 13-32 5-31-12l4-45c1-10-6-18-16-21-37-11-61-45-61-83V269Z"/>
+  <text x="450" y="660" fill="#f7f8fb" font-family="Manrope,Inter,Arial,sans-serif" font-size="24" font-weight="600" text-anchor="middle">dialog</text>
+</svg>

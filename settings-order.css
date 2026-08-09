@@ -1,0 +1,6 @@
+/* Порядок блоків у розділі «Команда й ролі» */
+.settings-panel[data-settings-panel="team"].active{display:flex;flex-direction:column}
+.settings-panel[data-settings-panel="team"] .panel-heading{order:0}
+.settings-panel[data-settings-panel="team"] .team-strip{order:1}
+.settings-panel[data-settings-panel="team"] .role-grid{order:2}
+.settings-panel[data-settings-panel="team"] .team-strip{margin:0 0 22px!important}

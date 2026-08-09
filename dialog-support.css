@@ -1,0 +1,14 @@
+.sos-card{margin-top:18px;padding:19px;border:1px solid rgba(255,128,119,.48);border-radius:20px;background:linear-gradient(145deg,#3b2c35,#1c2b41);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.sos-top,.learning-head{display:flex;align-items:center;gap:10px}
+.sos-top>span,.learning-head>span{display:grid;place-items:center;width:33px;height:33px;border-radius:11px;font-weight:800}
+.sos-top>span{background:#ff8077;color:#fff}.learning-head>span{background:rgba(186,251,40,.15);color:#bafb28;font-size:13px}
+.sos-card .sos-top p,.learning-head p{margin:0;color:#ffaaa4;font-size:9px;font-weight:800;letter-spacing:.9px}.learning-head p{color:#bafb28}
+.sos-card h3,.learning-card h3{margin:3px 0 0;font-size:14px;color:#f7f8fb}
+.sos-card>p,.learning-card>p{margin:11px 0;color:#bac3d0;font-size:11px;line-height:1.55}
+.sos-limit{display:flex;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.13);font-size:10px;color:#bdc5d0}.sos-limit b{color:#ffaaa4;white-space:nowrap}
+.sos-card button,.learning-card button{width:100%;margin-top:14px;border:0;border-radius:11px;padding:11px;font:800 11px Manrope,Arial,sans-serif;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.sos-card button{background:#ff8077;color:#fff}.learning-card button{background:#bafb28;color:#172313}.sos-card button:hover,.learning-card button:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.2)}
+.learning-card{margin-top:18px;padding:19px;border-radius:20px}.learning-meta{display:flex;flex-wrap:wrap;gap:7px}.learning-meta span{padding:5px 7px;border-radius:7px;background:#27374c;color:#b7c4d1;font-size:9px}
+
+/* Єдиний вертикальний ритм для двох колонок детального аналізу. */
+.content-grid>aside>.history{margin-top:0}

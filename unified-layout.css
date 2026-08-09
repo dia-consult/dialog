@@ -1,0 +1,25 @@
+/* Єдина оболонка та типографіка для основних екранів Dialog */
+body{padding:16px!important;background:#080c13!important}
+.app,.app-shell{width:100%!important;max-width:none!important;min-height:calc(100vh - 32px)!important;margin:0!important;border:1px solid #33445d!important;border-radius:46px!important;box-shadow:none!important;overflow:hidden!important}
+.app{padding-left:58px!important;padding-right:58px!important}
+.nav-pills a,.topbar nav a{font-family:Manrope,Arial,sans-serif!important;font-size:14px!important;font-weight:700!important}
+h1{font-family:Manrope,Arial,sans-serif!important;font-size:38px!important;font-weight:600!important;line-height:1.08!important;letter-spacing:-1.2px!important}
+.app-shell .topbar{height:92px!important}.app-shell .page-head,.app-shell .settings-layout{max-width:none!important;margin-left:0!important;margin-right:0!important;padding-left:58px!important;padding-right:58px!important}.app-shell .page-head{margin-top:42px!important}
+/* Єдина верхня панель: розміри екрана «Діалоги» */
+.topbar{height:92px!important}
+.app-shell .brand-mark,.symbol{width:24px!important;height:25px!important}
+.app-shell .brand-mark img,.symbol img{width:24px!important;height:25px!important;max-width:24px!important;max-height:25px!important}
+.app-shell .brand-word,.word{width:98px!important;height:32px!important}
+.nav-pills,.topbar nav{padding:4px!important;border-radius:23px!important}
+.nav-pills a,.topbar nav a{padding:10px 25px!important;border-radius:17px!important;font-size:14px!important;line-height:1.2!important}
+.header-actions .icon-button,.header-actions .profile-mini,.actions button{width:35px!important;height:35px!important}
+/* Спокійний hover-стан для всіх інтерактивних елементів */
+button,a,.card,.role-card,.integration-card,.plan-card,.guide-card,.stage,.dialog-row,.dialog-item,.overview-card,.insight{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background-color .22s ease,color .22s ease!important}
+.card:hover,.role-card:hover,.integration-card:hover,.plan-card:hover,.guide-card:hover,.overview-card:hover{transform:translateY(-3px);border-color:rgba(186,251,40,.45)!important;box-shadow:0 15px 30px rgba(0,0,0,.2),0 0 0 1px rgba(186,251,40,.07),0 0 24px rgba(186,251,40,.07)!important}
+button:hover:not(:disabled),.details:hover,.nav-pills a:hover,.topbar nav a:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.nav-pills a:not(.active):hover,.topbar nav a:not(.active):hover{background:rgba(186,251,40,.22)!important;color:#182615!important}
+.integration-card:hover .integration-icon,.role-card:hover .role-icon,.guide-card:hover>span{box-shadow:0 0 16px rgba(186,251,40,.35)}
+tbody tr{transition:background-color .2s ease,box-shadow .2s ease}tbody tr:hover{background:#eef5eb!important;box-shadow:inset 3px 0 0 var(--lime)}
+.stage:hover{transform:translateY(-2px);border-color:rgba(186,251,40,.44)!important;box-shadow:0 9px 18px rgba(0,0,0,.13)}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media(max-width:900px){body{padding:0!important}.app,.app-shell{min-height:100vh!important;border:0!important;border-radius:0!important}.app{padding-left:18px!important;padding-right:18px!important}}

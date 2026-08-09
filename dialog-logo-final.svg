@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180">
+  <defs>
+    <clipPath id="logo-dia-clip"><rect x="139" y="0" width="103" height="180" /></clipPath>
+  </defs>
+  <image href="assets/dialog-logo-final.png" x="20" y="31" width="92" height="95" preserveAspectRatio="xMidYMid meet" />
+  <text x="139" y="112" fill="#f7f8fb" font-family="Manrope, Inter, Helvetica Neue, Arial, sans-serif" font-size="82" font-weight="700" letter-spacing="-6">dialog</text>
+  <text x="139" y="112" fill="#bafb28" clip-path="url(#logo-dia-clip)" font-family="Manrope, Inter, Helvetica Neue, Arial, sans-serif" font-size="82" font-weight="700" letter-spacing="-6">dialog</text>
+</svg>

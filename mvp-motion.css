@@ -1,0 +1,62 @@
+/* Interactive polish for the Dialog MVP. */
+.brand { display: inline-flex; align-items: center; gap: 7px; color: #f7f8fb; text-decoration: none; }
+.brand-symbol { display: block; width: 24px; height: 25px; }
+.brand-symbol img { display: block; width: 24px; height: 25px; object-fit: contain; }
+.brand-word { display: block; width: 98px; height: 32px; overflow: visible; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .overview-card,
+  .insight,
+  .dialog-row,
+  .dialog-details,
+  .lime-button,
+  .analysis-button,
+  .quiet-button,
+  .period-button,
+  .nav-pills a,
+  .circle-button,
+  .icon-button,
+  .avatar {
+    transition: transform 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms ease,
+      background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  }
+
+  .overview-card:hover,
+  .insight:hover,
+  .dialog-details:hover {
+    transform: translateY(-5px);
+    border-color: rgba(186, 251, 40, .4);
+    box-shadow: 0 21px 34px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.13);
+  }
+
+  .dialog-row:hover:not(.critical) {
+    transform: translateX(5px);
+    background: #e5e9ee;
+    box-shadow: 0 8px 18px rgba(27, 38, 54, .08);
+  }
+
+  .dialog-row.critical:hover {
+    transform: translateX(5px);
+    box-shadow: 0 13px 23px rgba(15, 22, 34, .32);
+  }
+
+  .lime-button:hover,
+  .analysis-button:hover,
+  .quiet-button:hover {
+    transform: translateY(-2px) scale(1.015);
+    box-shadow: 0 14px 22px rgba(0,0,0,.3);
+  }
+
+  .period-button:hover,
+  .circle-button:hover,
+  .icon-button:hover,
+  .avatar:hover {
+    transform: translateY(-2px);
+    border-color: rgba(186, 251, 40, .55);
+  }
+
+  .nav-pills a:hover:not(.active) { background: rgba(22,33,48,.08); }
+  .nav-pills .active:hover { transform: scale(1.04); }
+}
+
+:focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700" role="img" aria-label="Dialog two voices logo">
+  <!-- Rear voice: lime and translucent. -->
+  <path fill="#ffffff" fill-opacity=".58" d="M396 74c11 0 20 6 28 16l29 34c19 23 47 31 75 23l177-52c51-15 96 24 96 77v238c0 37-24 70-59 80l-260 76c-27 8-54-12-54-40V98c0-13-12-24-32-24Z"/>
+  <!-- Front voice: white, with the lower speech tail. -->
+  <path fill="#bafb28" fill-opacity=".94" d="M171 239c0-42 28-75 68-87l190-56c55-16 108 25 108 82v308c0 36-23 68-57 78l-122 36c-19 6-37 20-52 38l-31 37c-11 13-32 5-31-12l4-45c1-10-6-18-16-21-37-11-61-45-61-83V239Z"/>
+</svg>

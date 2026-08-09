@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dialog — Налаштування</title>
+    <link rel="stylesheet" href="mvp-font.css" />
+    <link rel="stylesheet" href="settings-preview.css" />
+    <link rel="stylesheet" href="unified-layout.css" />
+    <link rel="stylesheet" href="interactions.css" />
+    <link rel="stylesheet" href="settings-order.css" />
+    <link rel="stylesheet" href="custom-role.css" />
+    <link rel="stylesheet" href="referral.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="mvp-preview.html" aria-label="Dialog — Огляд">
+          <span class="brand-mark"><img src="assets/dialog-logo-mark-trimmed.png" alt="" /></span>
+          <svg class="brand-word" viewBox="0 0 112 36" aria-hidden="true"><defs><clipPath id="dia-clip"><rect width="38" height="36" /></clipPath></defs><text x="0" y="29" fill="#f7f8fb" font-family="Manrope, Arial" font-size="30" font-weight="700" letter-spacing="-2">dialog</text><text x="0" y="29" fill="#bafb28" clip-path="url(#dia-clip)" font-family="Manrope, Arial" font-size="30" font-weight="700" letter-spacing="-2">dialog</text></svg>
+        </a>
+        <nav class="nav-pills" aria-label="Основна навігація">
+          <a href="mvp-preview.html">Огляд</a><a href="dialogs-list.html">Діалоги</a><a class="active" href="settings-preview.html">Налаштування</a>
+        </nav>
+        <div class="header-actions"><button class="icon-button" aria-label="Сповіщення">♧</button><button class="profile-mini">D</button></div>
+      </header>
+
+      <section class="page-head">
+        <div><p class="eyebrow">РОБОЧИЙ ПРОСТІР</p><h1>Налаштування</h1><p>Керуйте доступами, якістю оцінки та джерелами діалогів.</p></div>
+      </section>
+
+      <section class="settings-layout">
+        <aside class="settings-menu" aria-label="Розділи налаштувань">
+          <button class="setting-tab active" data-settings-tab="account" aria-selected="true"><span>◉</span>Акаунт</button>
+          <button class="setting-tab" data-settings-tab="team" aria-selected="false"><span>♧</span>Команда й ролі</button>
+          <button class="setting-tab" data-settings-tab="evaluation" aria-selected="false"><span>✦</span>Оцінка діалогів</button>
+          <button class="setting-tab" data-settings-tab="integrations" aria-selected="false"><span>⌁</span>Інтеграції</button>
+          <button class="setting-tab" data-settings-tab="billing" aria-selected="false"><span>$</span>Тарифи й ліміти</button>
+          <button class="setting-tab" data-settings-tab="guides" aria-selected="false"><span>?</span>Інструкції</button>
+          <div class="menu-note"><span class="glow-dot"></span><p>Усі зміни зберігаються для вашої команди.</p></div>
+        </aside>
+
+        <div class="settings-content">
+          <section class="settings-panel active" data-settings-panel="account">
+            <div class="panel-heading"><div><p class="eyebrow">ПРОФІЛЬ ПРОСТОРУ</p><h2>Акаунт компанії</h2><p>Інформація, яку бачитиме ваша команда.</p></div><button class="ghost-button">Переглянути профіль</button></div>
+            <div class="account-grid">
+              <article class="card profile-card"><div class="avatar-large">D<span></span></div><h3>Dia Consulting</h3><p>Аналітика продажів та клієнтських діалогів</p><button class="dark-button">Змінити аватар</button></article>
+              <form class="card account-form"><label>Назва компанії<input value="Dia Consulting" /></label><label>Короткий опис<textarea>Допомагаємо командам підвищувати якість продажів через аналіз дзвінків і листування.</textarea></label><div class="form-row"><label>Мова<select><option>Українська</option></select></label><label>Часовий пояс<select><option>Europe / Kyiv</option></select></label></div><button type="button" class="lime-button save">Зберегти зміни</button></form>
+            </div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="team">
+            <div class="panel-heading"><div><p class="eyebrow">ДОСТУПИ</p><h2>Команда й ролі</h2><p>Ролі визначають, хто бачить діалоги, оцінки та налаштування.</p></div><button class="lime-button" data-add-member>+ Запросити учасника</button></div>
+            <div class="role-grid">
+              <article class="role-card"><span class="role-icon">↗</span><p class="role-title">Менеджер</p><h3>Працює зі своїми діалогами</h3><p>Бачить власні дзвінки, чати, оцінки й персональні рекомендації.</p><ul><li>Власні діалоги та задачі</li><li>Персональний прогрес</li><li>Без доступу до налаштувань</li></ul></article>
+              <article class="role-card recommended"><span class="badge">Для керівників</span><span class="role-icon">⌁</span><p class="role-title">Керівник</p><h3>Розвиває команду</h3><p>Бачить аналітику команди, проводить контроль якості та коучинг.</p><ul><li>Усі діалоги своєї команди</li><li>Оцінки, ризики та рекомендації</li><li>Призначення чеклістів</li></ul></article>
+              <article class="role-card"><span class="role-icon">✦</span><p class="role-title">Адміністратор</p><h3>Керує робочим простором</h3><p>Налаштовує доступи, інтеграції, оцінку діалогів і оплату.</p><ul><li>Користувачі та ролі</li><li>Інтеграції та параметри AI</li><li>Тарифи й документи</li></ul></article>
+              <article class="role-card custom-role"><span class="role-icon">☷</span><div><p class="role-title">Кастомна роль</p><h3>Доступ під ваш процес</h3><p>Створіть окремий рівень доступу: для рекрутера, аудитора, партнера або зовнішнього консультанта.</p><div class="permission-preview"><span>✓ Діалоги</span><span>✓ Аналітика</span><span>□ Налаштування</span></div></div><button class="dark-button" data-custom-role>Налаштувати доступ →</button></article>
+            </div>
+            <article class="team-strip card"><div class="team-avatars"><b>D</b><b>ОП</b><b>ІМ</b><i>+6</i></div><div><h3>9 учасників у команді</h3><p>2 адміністратори · 2 керівники · 5 менеджерів</p></div><button class="ghost-button" data-team-management>Керувати командою →</button></article>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="evaluation">
+            <div class="panel-heading"><div><p class="eyebrow">AI-КОНФІГУРАЦІЯ</p><h2>Параметри оцінки</h2><p>Dialog визначає сильні сторони, ризики та наступний крок у кожному діалозі.</p></div><button class="lime-button">Зберегти модель</button></div>
+            <div class="evaluation-top card"><div><span class="spark">✦</span><div><h3>Головна ціль аналізу</h3><p>Збільшити конверсію в угоду та якість наступного кроку.</p></div></div><button class="select-like">Продажі B2B <span>⌄</span></button></div>
+            <div class="criteria-list">
+              <div class="criterion heading"><span>Етап продажу</span><span>Вага в оцінці</span><span>Відстежувати</span></div>
+              <div class="criterion"><div><b>01</b><span><strong>Встановлення контакту</strong><small>Тон, довіра, контекст звернення</small></span></div><div class="weight"><i style="width:20%"></i><em>20%</em></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+              <div class="criterion"><div><b>02</b><span><strong>Виявлення потреби</strong><small>Запитання, біль, критерії рішення</small></span></div><div class="weight"><i style="width:30%"></i><em>30%</em></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+              <div class="criterion"><div><b>03</b><span><strong>Презентація рішення</strong><small>Цінність, користь, персоналізація</small></span></div><div class="weight"><i style="width:20%"></i><em>20%</em></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+              <div class="criterion"><div><b>04</b><span><strong>Робота із запереченнями</strong><small>Причина сумніву та відповідь менеджера</small></span></div><div class="weight"><i style="width:15%"></i><em>15%</em></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+              <div class="criterion"><div><b>05</b><span><strong>Завершення контакту</strong><small>Домовленість, наступний крок, дедлайн</small></span></div><div class="weight"><i style="width:15%"></i><em>15%</em></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+            </div>
+            <div class="option-card card"><div><span class="option-icon">+</span><h3>Cross-sell / Up-sell</h3><p>Додатково перевіряти, чи менеджер виявив можливість розширити угоду.</p></div><button class="toggle active" aria-label="Увімкнено"></button></div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="integrations">
+            <div class="panel-heading"><div><p class="eyebrow">ДЖЕРЕЛА ДАНИХ</p><h2>Інтеграції</h2><p>Підключіть канали — нові розмови автоматично з’являться в Dialog.</p></div><button class="ghost-button">Перевірити підключення</button></div>
+            <div class="filter-row"><button class="filter active">Усі</button><button class="filter">Месенджери</button><button class="filter">Телефонія</button><button class="filter">CRM</button></div>
+            <div class="integration-section"><div class="section-label"><span>МЕСЕНДЖЕРИ</span><i></i></div><div class="integration-grid"><article class="integration-card"><span class="integration-icon telegram">➤</span><div><h3>Telegram</h3><p>Чати та голосові повідомлення</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon instagram">◎</span><div><h3>Instagram Direct</h3><p>Звернення з Direct</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon viber">⌁</span><div><h3>Viber</h3><p>Діалоги з клієнтами</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon whatsapp">◔</span><div><h3>WhatsApp Business</h3><p>Чати та шаблони</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon messenger">◌</span><div><h3>Messenger</h3><p>Повідомлення Facebook</p></div><button>Підключити</button></article></div></div>
+            <div class="integration-section"><div class="section-label"><span>ТЕЛЕФОНІЯ</span><i></i></div><div class="integration-grid"><article class="integration-card connected"><span class="integration-icon binotel">B</span><div><h3>Binotel</h3><p><b>● Підключено</b> · 3 номери</p></div><button>Налаштувати</button></article><article class="integration-card"><span class="integration-icon ringostat">R</span><div><h3>Ringostat</h3><p>Дзвінки та транскрипції</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon zadarma">Z</span><div><h3>Zadarma</h3><p>Хмарна телефонія</p></div><button>Підключити</button></article><article class="integration-card"><span class="integration-icon unitalk">U</span><div><h3>UniTalk</h3><p>Дзвінки з CRM</p></div><button>Підключити</button></article><article class="integration-card disabled"><span class="integration-icon">P</span><div><h3>Phonet</h3><p>Інтеграція незабаром</p></div><button disabled>Незабаром</button></article></div></div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="billing">
+            <div class="panel-heading"><div><p class="eyebrow">ВИКОРИСТАННЯ</p><h2>Тарифи й ліміти</h2><p>Керуйте обсягом аналізу та можливостями команди.</p></div><button class="ghost-button">Історія оплат →</button></div>
+            <article class="usage-card"><div><p>Поточний план</p><h3>Growth <span>$349 / міс</span></h3><small>Оновлення лімітів: 1 вересня</small></div><div class="usage-meter"><div><b>1 840</b><span> / 6 000 токенів використано</span></div><i><em style="width:31%"></em></i><p>Залишилося 4 160 токенів</p></div><button class="lime-button">Змінити план</button></article>
+            <article class="referral-card"><div class="referral-copy"><p class="eyebrow">DIA-РЕФЕРАЛИ</p><h3>Діліться Dialog — отримуйте DIA-бали щомісяця</h3><p>Коли залучений вами клієнт оплачує підписку, на ваш баланс автоматично нараховуються бонусні DIA-бали.</p><div class="referral-link"><span>dialog.dia-consulting.com.ua/r/dia-consulting</span><button data-copy-ref>Копіювати</button></div></div><div class="referral-stats"><div><small>Ваш бонус</small><b>7%</b><span>за планом Growth</span></div><div><small>Активні реферали</small><b>3</b><span>наступне нарахування 1 вересня</span></div><div><small>Отримано DIA-балів</small><b>780</b><span>за поточний місяць</span></div></div><div class="referral-rates"><span>Start <b>4%</b></span><span class="active">Growth <b>7%</b></span><span>Scale <b>10%</b></span><p>Бонус нараховується щомісяця після успішної оплати залученого клієнта та використовується лише в Dialog.</p></div></article>
+            <div class="plans-grid"><article class="plan-card"><p class="plan-name">Start</p><h3>$99 <span>/ міс</span></h3><p>Для невеликих команд, що починають аналізувати діалоги.</p><ul><li>1 500 токенів на місяць</li><li>До 3 користувачів</li><li>Базова оцінка 5 етапів</li><li>1 інтеграція</li></ul><button class="dark-button">Обрати Start</button></article><article class="plan-card current"><span class="badge">Поточний план</span><p class="plan-name">Growth</p><h3>$349 <span>/ міс</span></h3><p>Для команди продажів, якій потрібні щоденні інсайти.</p><ul><li>6 000 токенів на місяць</li><li>До 15 користувачів</li><li>Усі інтеграції та cross-sell</li><li>Командна аналітика</li></ul><button class="lime-button">Ваш поточний план</button></article><article class="plan-card"><p class="plan-name">Scale</p><h3>$799 <span>/ міс</span></h3><p>Для відділів продажів із високим потоком комунікацій.</p><ul><li>20 000 токенів на місяць</li><li>До 50 користувачів</li><li>Власні параметри оцінки</li><li>Пріоритетна підтримка</li></ul><button class="dark-button">Обрати Scale</button></article></div>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="guides">
+            <div class="panel-heading"><div><p class="eyebrow">ДОПОМОГА</p><h2>Інструкції</h2><p>Побудуйте процес аналізу комунікацій разом із командою.</p></div><button class="lime-button">✦ Запустити тур</button></div>
+            <div class="guide-hero"><div><span class="spark">✦</span><p class="eyebrow">ШВИДКИЙ СТАРТ</p><h3>Перший результат — за 15 хвилин</h3><p>Підключіть джерело діалогів, оберіть параметри оцінки — і Dialog покаже, що саме підсилити в продажах.</p></div><div class="guide-progress"><span>Ваш прогрес</span><b>2 / 4</b><i><em></em></i></div></div>
+            <div class="guides-grid"><article class="guide-card done"><span>01</span><h3>Налаштуйте акаунт</h3><p>Додайте назву, опис і учасників команди.</p><b>✓ Готово</b></article><article class="guide-card done"><span>02</span><h3>Підключіть канали</h3><p>Додайте телефонію або месенджер.</p><b>✓ Готово</b></article><article class="guide-card"><span>03</span><h3>Оберіть оцінку</h3><p>Налаштуйте етапи та ціль продажу.</p><button>Відкрити →</button></article><article class="guide-card"><span>04</span><h3>Проведіть перший аналіз</h3><p>Відкрийте діалог і подивіться рекомендації AI.</p><button>Дивитися приклад →</button></article></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script src="settings-preview.js"></script>
+    <script src="interactions.js"></script>
+  </body>
+</html>
