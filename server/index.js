@@ -6,6 +6,7 @@ import pg from 'pg';
 
 const { Pool } = pg;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const clientRoot = path.join(root, 'dist');
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL }) : null;
@@ -108,6 +109,18 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// Only non-sensitive browser configuration belongs here. Call records and
+// recordings will be exposed only after a Stytch session is verified.
+app.get('/api/config', (_req, res) => {
+  res.json({
+    stytch: {
+      enabled: Boolean(process.env.STYTCH_PUBLIC_TOKEN),
+      publicToken: process.env.STYTCH_PUBLIC_TOKEN || null,
+      environment: process.env.STYTCH_ENV || 'test'
+    }
+  });
+});
+
 app.get('/api/integrations/ringostat', (_req, res) => {
   res.json({
     provider: 'ringostat',
@@ -141,8 +154,8 @@ app.post('/api/webhooks/ringostat', async (req, res) => {
   }
 });
 
-app.use(express.static(root, { extensions: ['html'], index: 'index.html', maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
-app.use((_req, res) => res.status(404).sendFile(path.join(root, 'index.html')));
+app.use(express.static(clientRoot, { index: false, maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
+app.use((_req, res) => res.status(404).sendFile(path.join(clientRoot, 'index.html')));
 
 initDatabase()
   .then(() => app.listen(port, () => console.log(`Dialog server listening on ${port}`)))
