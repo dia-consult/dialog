@@ -5,6 +5,58 @@ const MAX_CALLS = 10;
 const MAX_AUDIO_BYTES = Number(process.env.DIALOG_MAX_AUDIO_BYTES || 20 * 1024 * 1024);
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+const RINGOSTAT_FIELDS = [
+  'calldate', 'caller', 'dst', 'disposition', 'billsec', 'call_type',
+  'uniqueid', 'recording', 'recording_wav', 'has_recording', 'employee_fio',
+  'department', 'connected_with', 'caller_number', 'call_card',
+].join(',');
+
+function dateForRingostat(date) {
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function externalId(call) {
+  return String(call.uniqueid ?? call.call_id ?? call.id ?? `${call.calldate}-${call.caller}-${call.dst}`);
+}
+
+async function fetchTestCalls() {
+  const url = new URL('https://api.ringostat.net/calls/list');
+  url.searchParams.set('export_type', 'json');
+  url.searchParams.set('from', dateForRingostat(new Date(Date.now() - 30 * 86400 * 1000)));
+  url.searchParams.set('to', dateForRingostat(new Date()));
+  url.searchParams.set('fields', RINGOSTAT_FIELDS);
+  url.searchParams.set('order', 'calldate desc');
+  const response = await fetch(url, {
+    headers: { 'Auth-key': process.env.RINGOSTAT_AUTH_KEY, Accept: 'application/json' },
+  });
+  if (!response.ok) throw new Error(`Ringostat API повернув ${response.status}`);
+  const payload = await response.json();
+  const calls = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+  return calls.filter((call) => recordingUrl(call, null)).slice(0, MAX_CALLS);
+}
+
+async function importTestCalls(calls) {
+  for (const call of calls) {
+    const occurredAt = call.calldate ? new Date(call.calldate) : null;
+    await pool.query(
+      `INSERT INTO ringostat_calls (project_id, external_id, occurred_at, phone, direction, recording_url, payload)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (project_id, external_id) DO UPDATE
+       SET occurred_at = EXCLUDED.occurred_at, phone = EXCLUDED.phone, direction = EXCLUDED.direction,
+           recording_url = EXCLUDED.recording_url, payload = EXCLUDED.payload, received_at = now()`,
+      [
+        process.env.RINGOSTAT_PROJECT_ID,
+        externalId(call),
+        Number.isNaN(occurredAt?.valueOf()) ? null : occurredAt,
+        call.caller_number || call.caller || null,
+        call.call_type || null,
+        recordingUrl(call, null),
+        call,
+      ],
+    );
+  }
+}
+
 function recordingUrl(payload, storedUrl) {
   const fields = [
     storedUrl,
@@ -110,14 +162,19 @@ async function main() {
     )
   `);
 
+  const ringostatCalls = await fetchTestCalls();
+  if (!ringostatCalls.length) throw new Error('Ringostat не повернув доступних записів за останні 30 днів');
+  await importTestCalls(ringostatCalls);
+
   const { rows } = await pool.query(`
     SELECT id, recording_url, payload
     FROM ringostat_calls
     WHERE COALESCE(payload->>'recording_wav', payload->>'recording_url', payload->>'record_link', recording_url) IS NOT NULL
       AND id NOT IN (SELECT call_id FROM dialog_analyses)
     ORDER BY occurred_at DESC NULLS LAST
-    LIMIT 30
-  `);
+    LIMIT $1
+  `, [MAX_CALLS]);
+  // The API selection is capped before import; this bound also prevents any subsequent run from exceeding it.
 
   let completed = 0;
   let totalCost = 0;
