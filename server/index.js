@@ -155,7 +155,7 @@ app.post('/api/webhooks/ringostat', async (req, res) => {
 });
 
 app.use(express.static(clientRoot, { index: false, maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
-app.use((_req, res) => res.status(404).sendFile(path.join(clientRoot, 'index.html')));
+app.use((_req, res) => res.sendFile(path.join(clientRoot, 'index.html')));
 
 initDatabase()
   .then(() => app.listen(port, () => console.log(`Dialog server listening on ${port}`)))
