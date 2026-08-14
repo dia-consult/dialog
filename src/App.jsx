@@ -57,7 +57,23 @@ function Dialogs() {
 
 function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#profile">Акаунт</a><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="profile"><span className="eyebrow">АКАУНТ</span><h2>Профіль і доступ</h2><p>Stytch забезпечує безпечний вхід та сесію робочого простору.</p><NavLink className="lime button" to="/login">Увійти через Stytch</NavLink></section><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
 
-function Login() { return <Shell><section className="login-page"><div className="login-card"><span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до Dialog</h1><p>Авторизацію буде виконано через Stytch. Для завершення підключення потрібно підтвердити тип вашого проєкту Stytch: Consumer або B2B.</p><button className="lime" disabled>Продовжити через Stytch</button><small>Після визначення типу проєкту тут буде активна справжня форма входу.</small></div></section></Shell>; }
+function Login() {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  return <Shell><section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new">
+    <NavLink to="/" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
+    <span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до<br/>свого простору</h1><p>Продовжуйте роботу з діалогами, командою та DIA-порадами.</p>
+    <form onSubmit={e => { e.preventDefault(); setSubmitted(true); }}>
+      <label htmlFor="email">Робочий email</label>
+      <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email"/>
+      <button className="lime login-submit" type="submit">Продовжити з email <span>→</span></button>
+    </form>
+    {submitted && <div className="login-status">Посилання для входу буде надіслано на <b>{email}</b> після активації методу входу у Stytch.</div>}
+    <div className="separator"><span/>або<span/></div>
+    <button className="oauth" type="button" onClick={() => setSubmitted(true)}><b className="google">G</b> Продовжити з Google</button>
+    <small className="terms">Продовжуючи, ви погоджуєтеся з умовами використання та політикою конфіденційності DIA Consulting.</small>
+  </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section></Shell>;
+}
 
 function Detail() { return <Shell><section className="page"><NavLink className="back" to="/dialogs">← Усі діалоги</NavLink><span className="eyebrow">ДЕТАЛЬНИЙ DIA-АНАЛІЗ</span><h1>Розмова з Олексієм К.</h1><div className="player"><div><b>Олексій К.</b><small>+38 067 123 45 67 · 4 попередні контакти</small></div><button>Транскрипція</button><div className="wave">▮▯▮▮▯▮▯▮▮▯▮▯▮</div><div className="timeline">▶ <i/> <i/> <i/></div></div><div className="analysis-grid"><article><span className="eyebrow coral">ІМОВІРНІСТЬ ЦЬОГО ДЗВІНКА</span><strong className="big coral">18%</strong><p>Менеджер встановив контакт, але не виявив потребу та не зафіксував наступний крок.</p></article><article className="deal"><span className="eyebrow">ІМОВІРНІСТЬ УГОДИ</span><strong className="big">42%</strong><p>Ураховано 5 дзвінків і листувань у воронці.</p></article></div></section></Shell>; }
 
