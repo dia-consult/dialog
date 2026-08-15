@@ -205,13 +205,38 @@ app.post('/api/auth/discovery/complete', async (req, res) => {
     });
     const available = organizations.discovered_organizations || [];
 
+    // Only the configured bootstrap owner can create the first workspace.
+    // Stytch assigns that first member the built-in `stytch_admin` role, which
+    // is the super-admin role for the workspace.
+    const bootstrapEmail = String(process.env.BOOTSTRAP_ADMIN_EMAIL || '').trim().toLowerCase();
+    const authenticatedEmail = String(discovery.email_address || '').trim().toLowerCase();
+    if (available.length === 0 && bootstrapEmail && authenticatedEmail === bootstrapEmail) {
+      const uniqueSlug = `dialog-${Date.now()}`;
+      const created = await stytchB2B('/v1/b2b/discovery/organizations/create', {
+        intermediate_session_token: intermediateSessionToken,
+        organization_name: 'Dialog — робочий простір',
+        organization_slug: uniqueSlug,
+        session_duration_minutes: 60
+      });
+      const createdSessionToken = created.session_token || created.member_session?.session_token;
+      if (!createdSessionToken) return res.status(502).json({ error: 'Stytch не повернув сесію нового робочого простору' });
+
+      res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(createdSessionToken)}; ${cookieOptions()}`);
+      return res.json({ ok: true, createdWorkspace: true });
+    }
+
+    if (available.length === 0) {
+      return res.status(403).json({
+        error: 'Для цього email ще немає доступу до робочого простору Dialog. Зверніться до адміністратора.',
+        requiresOrganization: true
+      });
+    }
+
     // A B2B user may belong to several organisations. The first release
     // automatically continues only if there is exactly one unambiguous choice.
     if (available.length !== 1) {
       return res.status(409).json({
-        error: available.length
-          ? 'Оберіть робочий простір для входу'
-          : 'Для цього email ще немає робочого простору Dialog',
+        error: 'Оберіть робочий простір для входу',
         requiresOrganization: true
       });
     }
