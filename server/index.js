@@ -14,6 +14,54 @@ const pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env
 app.disable('x-powered-by');
 app.use(express.json({ limit: '2mb' }));
 
+function readCookies(request) {
+  return Object.fromEntries((request.headers.cookie || '').split(';').filter(Boolean).map(item => {
+    const index = item.indexOf('=');
+    return [item.slice(0, index).trim(), decodeURIComponent(item.slice(index + 1))];
+  }));
+}
+
+function stytchConfigured() {
+  return Boolean(process.env.STYTCH_PROJECT_ID && process.env.STYTCH_SECRET && process.env.STYTCH_PUBLIC_TOKEN);
+}
+
+function stytchOrigin() {
+  return process.env.STYTCH_ENV === 'live' ? 'https://api.stytch.com' : 'https://test.stytch.com';
+}
+
+async function stytchB2B(pathname, body) {
+  if (!stytchConfigured()) throw new Error('Stytch B2B is not configured');
+  const credentials = Buffer.from(`${process.env.STYTCH_PROJECT_ID}:${process.env.STYTCH_SECRET}`).toString('base64');
+  const response = await fetch(`${stytchOrigin()}${pathname}`, {
+    method: 'POST',
+    headers: { Authorization: `Basic ${credentials}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error_message || payload.error_type || `Stytch returned ${response.status}`);
+  return payload;
+}
+
+async function authenticatedMember(request) {
+  const token = readCookies(request).dialog_stytch_session;
+  if (!token) return null;
+  try {
+    return await stytchB2B('/v1/b2b/sessions/authenticate', { session_token: token, session_duration_minutes: 60 });
+  } catch {
+    return null;
+  }
+}
+
+function cookieOptions() {
+  return [
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+    'Path=/',
+    'Max-Age=3600'
+  ].join('; ');
+}
+
 async function initDatabase() {
   if (!pool) return;
   await pool.query(`
@@ -114,11 +162,58 @@ app.get('/api/health', async (_req, res) => {
 app.get('/api/config', (_req, res) => {
   res.json({
     stytch: {
-      enabled: Boolean(process.env.STYTCH_PUBLIC_TOKEN),
-      publicToken: process.env.STYTCH_PUBLIC_TOKEN || null,
+      enabled: stytchConfigured(),
+      provider: 'b2b',
       environment: process.env.STYTCH_ENV || 'test'
     }
   });
+});
+
+app.post('/api/auth/magic-link', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Введіть коректний email' });
+  try {
+    const publicUrl = process.env.PUBLIC_URL || 'https://dialog.dia-consulting.com.ua';
+    await stytchB2B('/v1/b2b/magic_links/email/discovery/send', {
+      email_address: email,
+      login_redirect_url: `${publicUrl}/authenticate`,
+      signup_redirect_url: `${publicUrl}/authenticate`
+    });
+    res.status(202).json({ ok: true });
+  } catch (error) {
+    res.status(503).json({ error: error.message });
+  }
+});
+
+app.get('/authenticate', async (req, res) => {
+  const token = String(req.query.token || '');
+  if (!token) return res.redirect('/login?error=missing_token');
+  try {
+    const result = await stytchB2B('/v1/b2b/magic_links/authenticate', {
+      magic_links_token: token,
+      session_duration_minutes: 60
+    });
+    res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(result.session_token)}; ${cookieOptions()}`);
+    res.redirect('/');
+  } catch {
+    res.redirect('/login?error=authentication_failed');
+  }
+});
+
+app.get('/api/auth/session', async (req, res) => {
+  const session = await authenticatedMember(req);
+  if (!session) return res.status(401).json({ authenticated: false });
+  res.json({
+    authenticated: true,
+    member: { id: session.member?.member_id, email: session.member?.email_address, name: session.member?.name },
+    organization: { id: session.organization?.organization_id, name: session.organization?.organization_name },
+    roles: session.member?.roles || []
+  });
+});
+
+app.post('/api/auth/logout', (_req, res) => {
+  res.setHeader('Set-Cookie', 'dialog_stytch_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+  res.status(204).end();
 });
 
 app.get('/api/integrations/ringostat', (_req, res) => {

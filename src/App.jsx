@@ -59,18 +59,30 @@ function Settings() { return <Shell><section className="page settings"><span cla
 
 function Login() {
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const submit = async (event) => {
+    event.preventDefault(); setLoading(true); setError(''); setStatus('');
+    try {
+      const response = await fetch('/api/auth/magic-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося надіслати посилання');
+      setStatus('Перевірте пошту: ми надіслали безпечне посилання для входу.');
+    } catch (requestError) { setError(requestError.message); } finally { setLoading(false); }
+  };
   return <Shell><section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new">
     <NavLink to="/" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
     <span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до<br/>свого простору</h1><p>Продовжуйте роботу з діалогами, командою та DIA-порадами.</p>
-    <form onSubmit={e => { e.preventDefault(); setSubmitted(true); }}>
+    <form onSubmit={submit}>
       <label htmlFor="email">Робочий email</label>
       <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email"/>
-      <button className="lime login-submit" type="submit">Продовжити з email <span>→</span></button>
+      <button className="lime login-submit" type="submit" disabled={loading}>{loading ? 'Надсилаємо…' : <>Продовжити з email <span>→</span></>}</button>
     </form>
-    {submitted && <div className="login-status">Посилання для входу буде надіслано на <b>{email}</b> після активації методу входу у Stytch.</div>}
+    {status && <div className="login-status">{status}</div>}
+    {error && <div className="login-status login-error">{error}</div>}
     <div className="separator"><span/>або<span/></div>
-    <button className="oauth" type="button" onClick={() => setSubmitted(true)}><b className="google">G</b> Продовжити з Google</button>
+    <button className="oauth" type="button" disabled><b className="google">G</b> Google — незабаром</button>
     <small className="terms">Продовжуючи, ви погоджуєтеся з умовами використання та політикою конфіденційності DIA Consulting.</small>
   </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section></Shell>;
 }
