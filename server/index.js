@@ -187,19 +187,56 @@ app.post('/api/auth/magic-link', async (req, res) => {
   }
 });
 
-app.get('/authenticate', async (req, res) => {
-  const token = String(req.query.token || '');
-  if (!token) return res.redirect('/login?error=missing_token');
+app.post('/api/auth/discovery/complete', async (req, res) => {
+  const token = String(req.body?.token || '');
+  if (!token) return res.status(400).json({ error: 'Не знайдено токен для входу' });
+
   try {
-    const result = await stytchB2B('/v1/b2b/magic_links/authenticate', {
-      magic_links_token: token,
+    const discovery = await stytchB2B('/v1/b2b/magic_links/discovery/authenticate', {
+      discovery_magic_links_token: token
+    });
+    const intermediateSessionToken = discovery.intermediate_session_token;
+    if (!intermediateSessionToken) {
+      return res.status(502).json({ error: 'Stytch не повернув сесію для вибору робочого простору' });
+    }
+
+    const organizations = await stytchB2B('/v1/b2b/discovery/organizations', {
+      intermediate_session_token: intermediateSessionToken
+    });
+    const available = organizations.discovered_organizations || [];
+
+    // A B2B user may belong to several organisations. The first release
+    // automatically continues only if there is exactly one unambiguous choice.
+    if (available.length !== 1) {
+      return res.status(409).json({
+        error: available.length
+          ? 'Оберіть робочий простір для входу'
+          : 'Для цього email ще немає робочого простору Dialog',
+        requiresOrganization: true
+      });
+    }
+
+    const organization = available[0];
+    const organizationId = organization.organization_id || organization.organization?.organization_id;
+    if (!organizationId) return res.status(502).json({ error: 'Не вдалося визначити робочий простір' });
+
+    const session = await stytchB2B('/v1/b2b/discovery/intermediate_sessions/exchange', {
+      intermediate_session_token: intermediateSessionToken,
+      organization_id: organizationId,
       session_duration_minutes: 60
     });
-    res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(result.session_token)}; ${cookieOptions()}`);
-    res.redirect('/');
-  } catch {
-    res.redirect('/login?error=authentication_failed');
+    const sessionToken = session.session_token || session.member_session?.session_token;
+    if (!sessionToken) return res.status(502).json({ error: 'Stytch не повернув сесію входу' });
+
+    res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(sessionToken)}; ${cookieOptions()}`);
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(503).json({ error: error.message });
   }
+});
+
+app.get('/authenticate', async (req, res) => {
+  res.sendFile(path.join(root, 'authenticate', 'index.html'));
 });
 
 app.get('/api/auth/session', async (req, res) => {
