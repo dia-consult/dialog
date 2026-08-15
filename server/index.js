@@ -176,8 +176,10 @@ app.post('/api/auth/magic-link', async (req, res) => {
     const publicUrl = process.env.PUBLIC_URL || 'https://dialog.dia-consulting.com.ua';
     await stytchB2B('/v1/b2b/magic_links/email/discovery/send', {
       email_address: email,
-      login_redirect_url: `${publicUrl}/authenticate`,
-      signup_redirect_url: `${publicUrl}/authenticate`
+      // Discovery is the correct B2B flow when the person has not yet
+      // selected an organisation. Stytch deliberately does not accept
+      // login_redirect_url / signup_redirect_url on this endpoint.
+      discovery_redirect_url: `${publicUrl}/authenticate`
     });
     res.status(202).json({ ok: true });
   } catch (error) {
