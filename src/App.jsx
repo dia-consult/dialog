@@ -53,8 +53,6 @@ function InterfaceSizeControl() {
 
 function Shell({ children }) {
   const [noticeOpen, setNoticeOpen] = useState(false);
-  const [stytch, setStytch] = useState({ enabled: false });
-  useEffect(() => { fetch('/api/config').then(r => r.json()).then(d => setStytch(d.stytch || {})).catch(() => {}); }, []);
   return <main className="app-shell">
     <header className="app-header">
       <NavLink to="/" className="brand" aria-label="Dialog"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
@@ -66,7 +64,6 @@ function Shell({ children }) {
         {noticeOpen && <div className="notice-pop"><strong>Останні події</strong><p>Ringostat підключено</p><p>Дані будуть доступні після входу</p></div>}
       </div>
     </header>
-    {stytch.enabled && <div className="auth-strip">Захищений робочий простір · <NavLink to="/login">Увійти через Stytch</NavLink></div>}
     {children}
   </main>;
 }
