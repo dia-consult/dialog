@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import './interface-scale.css';
 
@@ -123,4 +123,47 @@ function Login() {
 
 function Detail() { return <Shell><section className="page"><NavLink className="back" to="/dialogs">← Усі діалоги</NavLink><span className="eyebrow">ДЕТАЛЬНИЙ DIA-АНАЛІЗ</span><h1>Розмова з Олексієм К.</h1><div className="player"><div><b>Олексій К.</b><small>+38 067 123 45 67 · 4 попередні контакти</small></div><button>Транскрипція</button><div className="wave">▮▯▮▮▯▮▯▮▮▯▮▯▮</div><div className="timeline">▶ <i/> <i/> <i/></div></div><div className="analysis-grid"><article><span className="eyebrow coral">ІМОВІРНІСТЬ ЦЬОГО ДЗВІНКА</span><strong className="big coral">18%</strong><p>Менеджер встановив контакт, але не виявив потребу та не зафіксував наступний крок.</p></article><article className="deal"><span className="eyebrow">ІМОВІРНІСТЬ УГОДИ</span><strong className="big">42%</strong><p>Ураховано 5 дзвінків і листувань у воронці.</p></article></div></section></Shell>; }
 
-export default function App(){ const location = useLocation(); useEffect(()=>{ applyInterfaceScale(getInterfaceScale()); window.scrollTo(0,0); },[location.pathname]); return <Routes><Route path="/" element={<Overview/>}/><Route path="/dialogs" element={<Dialogs/>}/><Route path="/dialogs/preview" element={<Detail/>}/><Route path="/settings" element={<Settings/>}/><Route path="/login" element={<Login/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes>; }
+function mainSection(pathname) {
+  if (pathname.startsWith('/settings')) return 2;
+  if (pathname.startsWith('/dialogs')) return 1;
+  return 0;
+}
+
+export default function App() {
+  const location = useLocation();
+  const [shownLocation, setShownLocation] = useState(location);
+  const [transition, setTransition] = useState('idle');
+  const [direction, setDirection] = useState('forward');
+  const enterTimer = useRef();
+
+  useEffect(() => {
+    applyInterfaceScale(getInterfaceScale());
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname === shownLocation.pathname) return undefined;
+    setDirection(mainSection(location.pathname) >= mainSection(shownLocation.pathname) ? 'forward' : 'back');
+    setTransition('exit');
+    const switchTimer = window.setTimeout(() => {
+      setShownLocation(location);
+      setTransition('enter');
+      enterTimer.current = window.setTimeout(() => setTransition('idle'), 280);
+    }, 180);
+    return () => {
+      window.clearTimeout(switchTimer);
+      window.clearTimeout(enterTimer.current);
+    };
+  }, [location, shownLocation]);
+
+  return <div className={`route-transition ${transition} ${direction}`}>
+    <Routes location={shownLocation}>
+      <Route path="/" element={<Overview/>}/>
+      <Route path="/dialogs" element={<Dialogs/>}/>
+      <Route path="/dialogs/preview" element={<Detail/>}/>
+      <Route path="/settings" element={<Settings/>}/>
+      <Route path="/login" element={<Login/>}/>
+      <Route path="*" element={<Navigate to="/" replace/>}/>
+    </Routes>
+  </div>;
+}
