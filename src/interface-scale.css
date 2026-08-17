@@ -8,31 +8,13 @@
 }
 
 .interface-size { scroll-margin-top: 32px; }
-.scale-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
-.scale-options button {
-  display: grid;
-  grid-template-columns: 46px 1fr;
-  grid-template-rows: auto auto;
-  gap: 2px 14px;
-  text-align: left;
-  color: #eaf1fb;
-  background: #1a2b45;
-  border: 1px solid #344b6a;
-  border-radius: 18px;
-  padding: 16px;
-  cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-.scale-options button:hover { transform: translateY(-2px); border-color: #7c9a45; }
-.scale-options button.selected { border-color: #b8ff12; background: linear-gradient(135deg, #253b38, #1a2b45); box-shadow: 0 10px 24px #b8ff121f; }
-.scale-options b { align-self: end; font-size: 16px; }
-.scale-options small { color: #a6b8ce; font-size: 12px; }
-.scale-preview { grid-row: 1 / span 2; width: 46px; height: 38px; border: 1px solid #607491; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 3px; overflow: hidden; }
-.scale-preview i { display: block; width: calc(5px * var(--preview-scale)); height: calc(20px * var(--preview-scale)); background: #b8ff12; border-radius: 3px; }
-.scale-preview i:nth-child(2) { height: calc(26px * var(--preview-scale)); background: #dfe8f5; }
-.scale-preview i:nth-child(3) { height: calc(15px * var(--preview-scale)); background: #6880a1; }
+.scale-slider { display: grid; grid-template-columns: auto minmax(180px, 360px) auto auto; align-items: center; gap: 12px; width: min(100%, 520px); margin-top: 22px; padding: 12px 14px; background: #172840; border: 1px solid #344b6a; border-radius: 16px; }
+.scale-slider span { color: #91a4bc; font-size: 12px; font-weight: 800; }
+.scale-slider input { width: 100%; accent-color: #b8ff12; cursor: pointer; }
+.scale-slider output { min-width: 46px; color: #b8ff12; font-size: 14px; font-weight: 800; text-align: right; }
 
 @media (max-width: 900px) {
   .app-shell { width: 100%; zoom: 1; }
-  .scale-options { grid-template-columns: 1fr; }
+  .scale-slider { grid-template-columns: auto 1fr auto; width: 100%; }
+  .scale-slider output { grid-column: 1 / -1; text-align: center; }
 }

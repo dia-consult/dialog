@@ -15,15 +15,14 @@ const demoDialogs = [
   ['Учора, 16:03', 'Дмитро П.', 'Дзвінок · 14 хв', 'Анна К.', '83%', 'Гарне відпрацювання, домовлено про зустріч', 'good']
 ];
 
-const interfaceScales = [
-  { id: 'compact', value: '0.9', label: 'Компактний', note: 'Більше даних на екрані' },
-  { id: 'standard', value: '1', label: 'Стандартний', note: 'Збалансований вигляд' },
-  { id: 'large', value: '1.08', label: 'Великий', note: 'Зручніше читати текст' }
-];
+const interfaceScaleMin = 0.85;
+const interfaceScaleMax = 1.2;
+const interfaceScaleStep = 0.05;
 
 function getInterfaceScale() {
-  const stored = localStorage.getItem('dialog-interface-scale');
-  return interfaceScales.some((item) => item.value === stored) ? stored : '1';
+  const stored = Number(localStorage.getItem('dialog-interface-scale'));
+  if (!Number.isFinite(stored)) return 1;
+  return Math.min(interfaceScaleMax, Math.max(interfaceScaleMin, stored));
 }
 
 function applyInterfaceScale(value) {
@@ -34,19 +33,20 @@ function applyInterfaceScale(value) {
 function InterfaceSizeControl() {
   const [selected, setSelected] = useState(getInterfaceScale);
   const chooseScale = (value) => {
-    setSelected(value);
-    applyInterfaceScale(value);
+    const next = Number(value);
+    setSelected(next);
+    applyInterfaceScale(next);
   };
 
   return <section id="interface" className="interface-size">
     <span className="eyebrow">ВИГЛЯД</span>
     <h2>Розмір інтерфейсу</h2>
     <p>Налаштуйте масштаб Dialog під свій екран. Зміна застосовується одразу на всіх сторінках.</p>
-    <div className="scale-options" role="radiogroup" aria-label="Розмір інтерфейсу">
-      {interfaceScales.map((item) => <button type="button" role="radio" aria-checked={selected === item.value} className={selected === item.value ? 'selected' : ''} onClick={() => chooseScale(item.value)} key={item.id}>
-        <span className="scale-preview" style={{ '--preview-scale': item.value }}><i/><i/><i/></span>
-        <b>{item.label}</b><small>{item.note}</small>
-      </button>)}
+    <div className="scale-slider" aria-label="Розмір інтерфейсу">
+      <span>85%</span>
+      <input type="range" min={interfaceScaleMin} max={interfaceScaleMax} step={interfaceScaleStep} value={selected} onChange={(event) => chooseScale(event.target.value)} aria-label="Масштаб інтерфейсу" />
+      <span>120%</span>
+      <output>{Math.round(selected * 100)}%</output>
     </div>
   </section>;
 }
@@ -89,7 +89,7 @@ function Dialogs() {
   </section></Shell>;
 }
 
-function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#profile">Акаунт</a><a href="#interface">Розмір інтерфейсу</a><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="profile"><span className="eyebrow">АКАУНТ</span><h2>Профіль і доступ</h2><p>Stytch забезпечує безпечний вхід та сесію робочого простору.</p><NavLink className="lime button" to="/login">Увійти через Stytch</NavLink></section><InterfaceSizeControl/><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
+function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#profile">Акаунт</a><a href="#interface">Розмір інтерфейсу</a><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="profile"><span className="eyebrow">АКАУНТ</span><h2>Профіль і доступ</h2><p>Безпечний вхід і сесія для вашого робочого простору.</p><NavLink className="lime button" to="/login">Увійти до робочого простору</NavLink></section><InterfaceSizeControl/><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
 
 function Login() {
   const [email, setEmail] = useState('');
