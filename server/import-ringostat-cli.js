@@ -35,6 +35,25 @@ const format = (url, type = '') => {
   if (value.includes('webm')) return 'webm';
   return null;
 };
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function downloadRecording(url) {
+  let lastResponse;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, {
+      headers: {
+        'Auth-key': process.env.RINGOSTAT_AUTH_KEY,
+        Accept: 'audio/*,application/octet-stream;q=0.9,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(90_000),
+    });
+    if (response.ok || response.status !== 429 || attempt === 3) return response;
+    lastResponse = response;
+    const retryAfter = Number(response.headers.get('retry-after'));
+    await sleep(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 12_000 * (attempt + 1));
+  }
+  return lastResponse;
+}
 
 function normalize(value) {
   const stages = value?.stages || {};
@@ -81,7 +100,7 @@ async function analyze(callId, url) {
   await pool.query(`INSERT INTO dialog_analyses (call_id, status) VALUES ($1, 'processing')
     ON CONFLICT (call_id) DO UPDATE SET status = 'processing', error_message = NULL, updated_at = now()`, [callId]);
   try {
-    const audio = await fetch(url);
+    const audio = await downloadRecording(url);
     if (!audio.ok) throw new Error(`Запис недоступний (${audio.status})`);
     const bytes = Buffer.from(await audio.arrayBuffer());
     if (bytes.length > maxAudioBytes) throw new Error('Запис перевищує ліміт тестового аналізу');
@@ -116,6 +135,8 @@ try {
     const result = await analyze(id, recordingUrl(call));
     completed += Number(result.ok);
     console.log(`Call ${id}: ${result.ok ? 'completed' : `failed — ${result.error}`}`);
+    // Ringostat can throttle consecutive recording downloads, even for serial requests.
+    if (call !== calls[calls.length - 1]) await sleep(6_000);
   }
   console.log(JSON.stringify({ imported: calls.length, completed, failed: calls.length - completed }));
 } finally {

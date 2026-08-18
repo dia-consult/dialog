@@ -208,8 +208,28 @@ function normalizeEvaluation(value) {
   };
 }
 
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function downloadRingostatRecording(url) {
+  let lastResponse;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, {
+      headers: {
+        'Auth-key': process.env.RINGOSTAT_AUTH_KEY,
+        Accept: 'audio/*,application/octet-stream;q=0.9,*/*;q=0.8',
+      },
+      signal: AbortSignal.timeout(90_000),
+    });
+    if (response.ok || response.status !== 429 || attempt === 3) return response;
+    lastResponse = response;
+    const retryAfter = Number(response.headers.get('retry-after'));
+    await wait(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 12_000 * (attempt + 1));
+  }
+  return lastResponse;
+}
+
 async function transcribeRecording(url) {
-  const audio = await fetch(url);
+  const audio = await downloadRingostatRecording(url);
   if (!audio.ok) throw new Error(`Запис недоступний (${audio.status})`);
   const declaredLength = Number(audio.headers.get('content-length') || 0);
   if (declaredLength > MAX_AUDIO_BYTES) throw new Error('Запис перевищує ліміт тестового аналізу');
