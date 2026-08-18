@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import './interface-scale.css';
 
 const nav = [
@@ -8,12 +8,36 @@ const nav = [
   ['/settings', 'Налаштування']
 ];
 
-const demoDialogs = [
-  ['Сьогодні, 10:42', 'Олексій К.', 'Дзвінок · 12 хв', 'Анна К.', '18%', 'Не виявлено потребу — немає наступного кроку', 'risk'],
-  ['Сьогодні, 09:15', 'Марія В.', 'Telegram · 18 повідомлень', 'Ольга М.', '34%', 'Не зафіксовано наступний крок', 'mid'],
-  ['Учора, 17:26', 'Ірина С.', 'Дзвінок · 8 хв', 'Дмитро П.', '41%', 'Не запропоновано cross-sell', 'mid'],
-  ['Учора, 16:03', 'Дмитро П.', 'Дзвінок · 14 хв', 'Анна К.', '83%', 'Гарне відпрацювання, домовлено про зустріч', 'good']
-];
+const analysisStatus = {
+  ready: 'Очікує DIA-аналізу',
+  pending: 'У черзі на аналіз',
+  processing: 'Триває DIA-аналіз',
+  completed: 'Аналіз готовий',
+  failed: 'Не вдалося проаналізувати',
+  no_recording: 'Немає запису'
+};
+
+function toneForScore(score) {
+  if (score == null) return 'mid';
+  if (score >= 75) return 'good';
+  if (score >= 50) return 'mid';
+  return 'risk';
+}
+
+function formatDateTime(value) {
+  if (!value) return 'Дата не вказана';
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return 'Дата не вказана';
+  return new Intl.DateTimeFormat('uk-UA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
+function formatDuration(seconds) {
+  const total = Number(seconds || 0);
+  if (!Number.isFinite(total) || total <= 0) return 'тривалість не вказана';
+  const minutes = Math.floor(total / 60);
+  const remainder = Math.round(total % 60);
+  return minutes ? `${minutes} хв ${remainder ? `${remainder} с` : ''}`.trim() : `${remainder} с`;
+}
 
 const interfaceScaleMin = 0.85;
 const interfaceScaleMax = 1.2;
@@ -25,18 +49,36 @@ function getInterfaceScale() {
   return Math.min(interfaceScaleMax, Math.max(interfaceScaleMin, stored));
 }
 
-function applyInterfaceScale(value) {
-  document.documentElement.style.setProperty('--ui-scale', value);
-  localStorage.setItem('dialog-interface-scale', value);
+function scaleForViewport(value) {
+  const preferred = Math.min(interfaceScaleMax, Math.max(interfaceScaleMin, Number(value)));
+  const viewportWidth = window.innerWidth || 1440;
+  // Keep room for the rounded frame and avoid horizontal clipping when a
+  // preference selected on a large display is reused on a smaller laptop.
+  const viewportLimit = Math.min(interfaceScaleMax, Math.max(interfaceScaleMin, viewportWidth / 1180));
+  return Math.min(preferred, viewportLimit);
+}
+
+function applyInterfaceScale(value, persist = false) {
+  const effective = scaleForViewport(value);
+  document.documentElement.style.setProperty('--ui-scale', effective);
+  if (persist) localStorage.setItem('dialog-interface-scale', value);
 }
 
 function InterfaceSizeControl() {
   const [selected, setSelected] = useState(getInterfaceScale);
+  const [applied, setApplied] = useState(() => scaleForViewport(getInterfaceScale()));
   const chooseScale = (value) => {
     const next = Number(value);
     setSelected(next);
-    applyInterfaceScale(next);
+    applyInterfaceScale(next, true);
+    setApplied(scaleForViewport(next));
   };
+
+  useEffect(() => {
+    const syncScale = () => setApplied(scaleForViewport(selected));
+    window.addEventListener('resize', syncScale);
+    return () => window.removeEventListener('resize', syncScale);
+  }, [selected]);
 
   return <section id="interface" className="interface-size">
     <span className="eyebrow">ВИГЛЯД</span>
@@ -46,8 +88,9 @@ function InterfaceSizeControl() {
       <span>85%</span>
       <input type="range" min={interfaceScaleMin} max={interfaceScaleMax} step={interfaceScaleStep} value={selected} onChange={(event) => chooseScale(event.target.value)} aria-label="Масштаб інтерфейсу" />
       <span>120%</span>
-      <output>{Math.round(selected * 100)}%</output>
+      <output title={applied < selected ? 'Масштаб тимчасово зменшено, щоб інтерфейс повністю помістився' : undefined}>{Math.round(applied * 100)}%</output>
     </div>
+    {applied < selected && <small className="scale-fit-note">Автоматично підлаштовано під ширину вікна</small>}
   </section>;
 }
 
@@ -55,13 +98,15 @@ function Shell({ children }) {
   const [noticeOpen, setNoticeOpen] = useState(false);
   return <main className="app-shell">
     <header className="app-header">
-      <NavLink to="/" className="brand" aria-label="Dialog"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
-      <nav className="main-nav">{nav.map(([to, title]) => <NavLink key={to} to={to} end={to === '/'}>{title}</NavLink>)}</nav>
-      <div className="header-tools">
-        <NavLink to="/settings#billing" className="balance" title="DIA-бали"><span className="liquid" /><b>68%</b></NavLink>
-        <button className="bell" onClick={() => setNoticeOpen(v => !v)} aria-label="Сповіщення">♧<i /></button>
-        <NavLink className="avatar" to="/settings#profile">D</NavLink>
-        {noticeOpen && <div className="notice-pop"><strong>Останні події</strong><p>Ringostat підключено</p><p>Дані будуть доступні після входу</p></div>}
+      <div className="global-nav-panel">
+        <NavLink to="/" className="brand" aria-label="Dialog"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
+        <nav className="main-nav" aria-label="Основна навігація">{nav.map(([to, title]) => <NavLink key={to} to={to} end={to === '/'}>{title}</NavLink>)}</nav>
+        <div className="header-tools">
+          <NavLink to="/settings#billing" className="balance" title="DIA-бали"><span className="liquid" /><b>68%</b></NavLink>
+          <button className="bell" onClick={() => setNoticeOpen(v => !v)} aria-label="Сповіщення">♧<i /></button>
+          <NavLink className="avatar" to="/settings#profile">D</NavLink>
+          {noticeOpen && <div className="notice-pop"><strong>Останні події</strong><p>Ringostat підключено</p><p>Дані будуть доступні після входу</p></div>}
+        </div>
       </div>
     </header>
     {children}
@@ -81,11 +126,65 @@ function Overview() {
 
 function Dialogs() {
   const [query, setQuery] = useState('');
-  const rows = demoDialogs.filter(d => d[1].toLowerCase().includes(query.toLowerCase()));
-  return <Shell><section className="page"><span className="eyebrow">РОБОЧИЙ ПРОСТІР · ДІАЛОГИ</span><h1>Усі діалоги</h1><p>Реальні дзвінки та листування будуть доступні після авторизації.</p>
-    <div className="filters"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Пошук клієнта або менеджера"/><button>Усі канали⌄</button><button>Сьогодні⌄</button><button>Усі менеджери⌄</button><button className="outline">Потребують уваги&nbsp; 12</button><button className="lime">↑ Завантажити з ПК</button></div>
+  const [calls, setCalls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const loadCalls = async () => {
+    try {
+      setError('');
+      const response = await fetch('/api/dialogs');
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося отримати діалоги');
+      setCalls(payload.calls || []);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadCalls(); }, []);
+  useEffect(() => {
+    if (!calls.some(call => ['pending', 'processing'].includes(call.status))) return undefined;
+    const timer = window.setInterval(loadCalls, 5000);
+    return () => window.clearInterval(timer);
+  }, [calls]);
+
+  const syncRingostat = async () => {
+    setSyncing(true); setMessage(''); setError('');
+    try {
+      const response = await fetch('/api/ringostat/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося синхронізувати Ringostat');
+      setMessage(`Імпортовано ${payload.imported} дзвінків. У черзі на DIA-аналіз: ${payload.queued || 0}.`);
+      await loadCalls();
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const normalized = query.trim().toLowerCase();
+  const rows = calls.filter(call => !normalized || [call.client, call.manager, call.phone].filter(Boolean).some(value => value.toLowerCase().includes(normalized)));
+  return <Shell><section className="page"><span className="eyebrow">РОБОЧИЙ ПРОСТІР · ДІАЛОГИ</span><h1>Усі діалоги</h1><p>Реальні дзвінки з Ringostat, їхні записи, транскрипції та DIA-оцінки.</p>
+    <div className="filters"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Пошук клієнта, номера або менеджера"/><button>Усі канали⌄</button><button>За 30 днів⌄</button><button>Усі менеджери⌄</button><button className="outline">Потребують уваги&nbsp; {calls.filter(call => (call.evaluation?.contact_probability ?? 100) < 50).length}</button><button className="lime" onClick={syncRingostat} disabled={syncing}>{syncing ? 'Імпортуємо…' : '↻ Оновити Ringostat'}</button><button className="lime">↑ Завантажити з ПК</button></div>
+    {message && <div className="dialog-notice">{message}</div>}
+    {error && <div className="dialog-notice error">{error}{error === 'Потрібен вхід' && <> · <NavLink to="/login">Увійти</NavLink></>}</div>}
     <div className="legend"><i className="green"/>75–100% висока імовірність <i className="amber"/>50–74% можна покращити <i className="red"/>0–49% потрібна увага</div>
-    <div className="table"><div className="table-head"><span>Діалог ↕</span><span>Клієнт / канал</span><span>Менеджер</span><span>Імовірність угоди</span><span>DIA-висновок</span><span/></div>{rows.map((d) => <div className="dialog-row" key={d[1]}><span>{d[0]}</span><span><b>{d[1]}</b><small>{d[2]}</small></span><span>{d[3]}</span><span className={`score ${d[6]}`}>{d[4]}</span><span className={`insight ${d[6]}`}>{d[5]}</span><NavLink to="/dialogs/preview">Детальніше →</NavLink></div>)}</div>
+    <div className="table"><div className="table-head"><span>Діалог ↕</span><span>Клієнт / канал</span><span>Менеджер</span><span>Імовірність контакту</span><span>DIA-висновок</span><span/></div>
+      {loading && <div className="table-empty">Завантажуємо реальні дзвінки…</div>}
+      {!loading && !error && !rows.length && <div className="table-empty">Ще немає імпортованих дзвінків із записом. Натисніть «Оновити Ringostat» — буде імпортовано до 10 останніх записів.</div>}
+      {rows.map((call) => {
+        const probability = call.evaluation?.contact_probability;
+        const tone = toneForScore(probability);
+        const summary = call.evaluation?.summary || analysisStatus[call.status] || 'Очікуємо дані';
+        return <div className="dialog-row" key={call.id}><span>{formatDateTime(call.occurredAt)}</span><span><b>{call.client}</b><small>☎ Ringostat · {formatDuration(call.durationSeconds)}</small></span><span>{call.manager}</span><span className={`score ${tone}`}>{probability == null ? '—' : `${probability}%`}</span><span className={`insight ${call.status === 'failed' ? 'risk' : tone}`}>{summary}</span><NavLink to={`/dialogs/${call.id}`}>Детальніше →</NavLink></div>;
+      })}
+    </div>
   </section></Shell>;
 }
 
@@ -121,7 +220,63 @@ function Login() {
   </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section></Shell>;
 }
 
-function Detail() { return <Shell><section className="page"><NavLink className="back" to="/dialogs">← Усі діалоги</NavLink><span className="eyebrow">ДЕТАЛЬНИЙ DIA-АНАЛІЗ</span><h1>Розмова з Олексієм К.</h1><div className="player"><div><b>Олексій К.</b><small>+38 067 123 45 67 · 4 попередні контакти</small></div><button>Транскрипція</button><div className="wave">▮▯▮▮▯▮▯▮▮▯▮▯▮</div><div className="timeline">▶ <i/> <i/> <i/></div></div><div className="analysis-grid"><article><span className="eyebrow coral">ІМОВІРНІСТЬ ЦЬОГО ДЗВІНКА</span><strong className="big coral">18%</strong><p>Менеджер встановив контакт, але не виявив потребу та не зафіксував наступний крок.</p></article><article className="deal"><span className="eyebrow">ІМОВІРНІСТЬ УГОДИ</span><strong className="big">42%</strong><p>Ураховано 5 дзвінків і листувань у воронці.</p></article></div></section></Shell>; }
+function Detail() {
+  const { id } = useParams();
+  const [dialog, setDialog] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [error, setError] = useState('');
+  const [requesting, setRequesting] = useState(false);
+
+  const loadDialog = async () => {
+    try {
+      setError('');
+      const response = await fetch(`/api/dialogs/${id}`);
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося отримати діалог');
+      setDialog(payload);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadDialog(); }, [id]);
+  useEffect(() => {
+    if (!['pending', 'processing', 'ready'].includes(dialog?.status)) return undefined;
+    const timer = window.setInterval(loadDialog, 5000);
+    return () => window.clearInterval(timer);
+  }, [dialog?.status, id]);
+
+  const requestAnalysis = async () => {
+    setRequesting(true); setError('');
+    try {
+      const response = await fetch(`/api/dialogs/${id}/analyze`, { method: 'POST' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося додати в чергу');
+      await loadDialog();
+    } catch (requestError) { setError(requestError.message); } finally { setRequesting(false); }
+  };
+
+  if (loading) return <Shell><section className="page"><p>Завантажуємо DIA-аналіз…</p></section></Shell>;
+  if (error || !dialog) return <Shell><section className="page"><NavLink className="back" to="/dialogs">← Усі діалоги</NavLink><div className="dialog-notice error">{error || 'Діалог не знайдено'}</div></section></Shell>;
+
+  const evaluation = dialog.evaluation;
+  const probability = evaluation?.contact_probability;
+  const tone = toneForScore(probability);
+  const stages = [
+    ['Встановлення контакту', 'contact'], ['Виявлення потреби', 'needs'], ['Презентація', 'presentation'],
+    ['Робота із запереченнями', 'objections'], ['Cross-sell / Up-sell', 'cross_sell'], ['Завершення контакту', 'closing']
+  ];
+  return <Shell><section className="page detail-page"><NavLink className="back" to="/dialogs">← Усі діалоги</NavLink><span className="eyebrow">ДЕТАЛЬНИЙ DIA-АНАЛІЗ</span><h1>Розмова з {dialog.client}</h1><p>{formatDateTime(dialog.occurredAt)} · {dialog.manager} · Дзвінок · {formatDuration(dialog.durationSeconds)}</p>
+    <div className="player"><div><b>{dialog.client}</b><small>{dialog.phone || 'Номер не вказано'} · {dialog.deal.contacts} контакт{dialog.deal.contacts === 1 ? '' : 'ів'} у воронці</small></div><button onClick={() => setShowTranscript(value => !value)}>{showTranscript ? 'Сховати транскрипцію' : 'Транскрипція'}</button><div className="wave">▮▯▮▮▯▮▯▮▮▯▮▯▮</div>{dialog.hasRecording ? <audio className="recording-audio" controls preload="metadata" src={`/api/dialogs/${dialog.id}/audio`}>Ваш браузер не підтримує аудіо.</audio> : <div className="timeline">Запис відсутній</div>}
+      {showTranscript && <div className="transcript">{dialog.transcript || (dialog.status === 'failed' ? `Помилка: ${dialog.error || 'невідома'}` : 'Транскрипція ще готується…')}</div>}
+    </div>
+    {['ready', 'pending', 'processing', 'failed'].includes(dialog.status) && <div className="analysis-pending"><b>{analysisStatus[dialog.status]}</b><span>{dialog.status === 'failed' ? dialog.error || 'Спробуйте повторити аналіз.' : 'Сторінка оновиться автоматично після готовності.'}</span>{dialog.status !== 'processing' && <button className="lime" onClick={requestAnalysis} disabled={requesting}>{requesting ? 'Додаємо…' : 'Запустити DIA-аналіз'}</button>}</div>}
+    <div className="analysis-grid"><article><span className={`eyebrow ${tone === 'risk' ? 'coral' : ''}`}>ІМОВІРНІСТЬ ЦЬОГО ДЗВІНКА</span><strong className={`big ${tone === 'risk' ? 'coral' : ''}`}>{probability == null ? '—' : `${probability}%`}</strong><p>{evaluation?.summary || analysisStatus[dialog.status]}</p></article><article className="deal"><span className="eyebrow">ІМОВІРНІСТЬ УГОДИ</span><strong className="big">{dialog.deal.probability == null ? '—' : `${dialog.deal.probability}%`}</strong><p>Ураховано {dialog.deal.contacts} контакт{dialog.deal.contacts === 1 ? '' : 'ів'} із цим номером у воронці.</p></article></div>
+    {evaluation && <section className="stage-panel"><div><span className="eyebrow">ЯКІСТЬ ЦЬОГО ДІАЛОГУ</span><h2>Відпрацювання етапів</h2></div><div className="stage-grid">{stages.map(([title, key], index) => { const score = evaluation.stages?.[key] ?? 0; return <article key={key}><span>0{index + 1}</span><b>{title}</b><strong className={toneForScore(score)}>{score}%</strong><i><em style={{ width: `${score}%` }}/></i></article>; })}</div></section>}
+    {evaluation?.recommendations?.length > 0 && <section className="recommendations"><span className="eyebrow">DIA-ПОРАДА</span><h2>Що сказати далі</h2>{evaluation.recommendations.map((item, index) => <article key={`${item.issue}-${index}`}><b>{item.issue}</b><p>«{item.say}»</p></article>)}</section>}
+  </section></Shell>;
+}
 
 function mainSection(pathname) {
   if (pathname.startsWith('/settings')) return 2;
@@ -142,6 +297,12 @@ export default function App() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const fitToViewport = () => applyInterfaceScale(getInterfaceScale());
+    window.addEventListener('resize', fitToViewport);
+    return () => window.removeEventListener('resize', fitToViewport);
+  }, []);
+
+  useEffect(() => {
     if (location.pathname === shownLocation.pathname) return undefined;
     setDirection(mainSection(location.pathname) >= mainSection(shownLocation.pathname) ? 'forward' : 'back');
     setTransition('exit');
@@ -160,7 +321,8 @@ export default function App() {
     <Routes location={shownLocation}>
       <Route path="/" element={<Overview/>}/>
       <Route path="/dialogs" element={<Dialogs/>}/>
-      <Route path="/dialogs/preview" element={<Detail/>}/>
+      <Route path="/dialogs/preview" element={<Navigate to="/dialogs" replace/>}/>
+      <Route path="/dialogs/:id" element={<Detail/>}/>
       <Route path="/settings" element={<Settings/>}/>
       <Route path="/login" element={<Login/>}/>
       <Route path="*" element={<Navigate to="/" replace/>}/>

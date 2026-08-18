@@ -4,6 +4,7 @@
    width keeps the rounded product frame aligned with the viewport. */
 .app-shell {
   width: calc(100% / var(--ui-scale));
+  max-width: calc(2048px / var(--ui-scale));
   zoom: var(--ui-scale);
 }
 
@@ -12,9 +13,49 @@
 .scale-slider span { color: #91a4bc; font-size: 12px; font-weight: 800; }
 .scale-slider input { width: 100%; accent-color: #b8ff12; cursor: pointer; }
 .scale-slider output { min-width: 46px; color: #b8ff12; font-size: 14px; font-weight: 800; text-align: right; }
+.scale-fit-note { display: block; margin-top: 10px; color: #9db0c8; font-size: 12px; }
 
 @media (max-width: 900px) {
   .app-shell { width: 100%; zoom: 1; }
   .scale-slider { grid-template-columns: auto 1fr auto; width: 100%; }
   .scale-slider output { grid-column: 1 / -1; text-align: center; }
+}
+
+/* A saved large-interface preference must never cause page-level overflow. */
+html, body { max-width: 100%; overflow-x: clip; }
+
+@media (max-width: 1180px) {
+  .app-shell { border-radius: 48px 48px 0 0; }
+  .global-nav-panel { grid-template-columns: minmax(108px, 1fr) auto minmax(154px, 1fr); gap: 16px; }
+  .global-nav-panel .main-nav { grid-column: auto; grid-row: auto; justify-self: center; }
+  .global-nav-panel .main-nav a { padding: 14px clamp(16px, 2.4vw, 30px); font-size: 17px; white-space: nowrap; }
+  .global-nav-panel .header-tools { gap: 10px; }
+  .global-nav-panel .brand img { width: 118px; }
+  .global-nav-panel .balance, .global-nav-panel .bell { width: 50px; height: 50px; }
+  .global-nav-panel .avatar { width: 60px; height: 60px; }
+  .settings-layout { grid-template-columns: 250px minmax(0, 1fr); gap: 24px; }
+  .settings aside a { padding: 16px; }
+}
+
+/* Keep every composition inside the viewport between desktop and tablet.
+   Dense data tables can scroll inside their own card, never the whole app. */
+@media (max-width: 1180px) {
+  .page { padding-left: clamp(24px, 4vw, 56px); padding-right: clamp(24px, 4vw, 56px); }
+  .metric-card { min-width: 0; padding: clamp(24px, 3vw, 38px); }
+  .metric-card strong { font-size: clamp(54px, 7vw, 76px); }
+  .main-nav a { padding-left: clamp(18px, 3vw, 34px); padding-right: clamp(18px, 3vw, 34px); }
+}
+
+@media (max-width: 640px) {
+  .global-nav-panel { grid-template-columns: 88px minmax(0, 1fr) 112px; gap: 8px; padding-left: 8px; padding-right: 8px; }
+  .global-nav-panel .brand img { width: 88px; }
+  .global-nav-panel .main-nav { min-width: 0; overflow: hidden; border-width: 3px; }
+  .global-nav-panel .main-nav a { min-width: 0; flex: 1; padding: 11px 4px; font-size: 12px; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+  .global-nav-panel .header-tools { gap: 5px; }
+  .global-nav-panel .balance, .global-nav-panel .bell { width: 34px; height: 34px; border-width: 2px; font-size: 10px; }
+  .global-nav-panel .bell { font-size: 20px; }
+  .global-nav-panel .avatar { width: 38px; height: 38px; font-size: 15px; }
+  .page > p { font-size: 17px; }
+  .settings aside { overflow-x: auto; }
+  .settings aside a { white-space: nowrap; }
 }
