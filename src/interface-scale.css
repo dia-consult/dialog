@@ -59,3 +59,55 @@ html, body { max-width: 100%; overflow-x: clip; }
   .settings aside { overflow-x: auto; }
   .settings aside a { white-space: nowrap; }
 }
+
+/* The workspace always uses the available browser width.  The former saved
+   zoom preference is intentionally ignored so no page can exceed the viewport. */
+html, body, #root { width: 100%; max-width: 100%; min-width: 0; overflow-x: clip; }
+.app-shell { width: 100% !important; max-width: 2048px !important; min-width: 0; zoom: 1 !important; }
+.app-shell > * { min-width: 0; }
+
+/* Fixed three-zone header: brand on the left, navigation at the exact centre,
+   and DIA controls on the right. Each zone owns its space and cannot overlap. */
+.app-header { padding: 18px clamp(18px, 4vw, 72px); }
+.global-nav-panel {
+  width: 100%;
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(14px, 3vw, 42px);
+  padding: 12px 0;
+}
+.global-nav-panel .brand { justify-self: start; min-width: 0; }
+.global-nav-panel .main-nav { justify-self: center; grid-column: 2; min-width: 0; z-index: 1; }
+.global-nav-panel .header-tools { justify-self: end; grid-column: 3; min-width: 0; gap: 12px; z-index: 2; }
+
+@media (max-width: 1180px) {
+  .global-nav-panel { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: clamp(10px, 2vw, 24px); }
+  .global-nav-panel .main-nav a { padding: 13px clamp(12px, 2vw, 26px); font-size: clamp(14px, 1.7vw, 18px); }
+  .global-nav-panel .brand img { width: clamp(94px, 10vw, 118px); }
+  .global-nav-panel .header-tools { gap: 9px; }
+  .global-nav-panel .balance, .global-nav-panel .bell { width: 46px; height: 46px; }
+  .global-nav-panel .avatar { width: 54px; height: 54px; }
+}
+
+@media (max-width: 640px) {
+  .app-header { padding: 10px 12px; }
+  .global-nav-panel { min-height: 58px; grid-template-columns: 66px minmax(0, 1fr) 110px; column-gap: 6px; padding: 6px 0; }
+  .global-nav-panel .brand img { width: 64px; }
+  .global-nav-panel .main-nav { width: 100%; border-width: 2px; }
+  .global-nav-panel .main-nav a { min-width: 0; flex: 1; padding: 9px 3px; font-size: 11px; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .global-nav-panel .header-tools { gap: 4px; }
+  .global-nav-panel .balance, .global-nav-panel .bell { width: 31px; height: 31px; font-size: 9px; border-width: 2px; }
+  .global-nav-panel .bell { font-size: 18px; }
+  .global-nav-panel .avatar { width: 36px; height: 36px; font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+  .global-nav-panel { grid-template-columns: 50px minmax(0, 1fr) 98px; }
+  .global-nav-panel .brand img { width: 48px; }
+  .global-nav-panel .main-nav a { padding: 8px 2px; font-size: 9px; }
+  .global-nav-panel .header-tools { gap: 3px; }
+  .global-nav-panel .balance, .global-nav-panel .bell { width: 28px; height: 28px; }
+  .global-nav-panel .avatar { width: 32px; height: 32px; }
+}
