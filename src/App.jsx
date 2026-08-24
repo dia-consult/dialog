@@ -155,37 +155,7 @@ function Dialogs() {
   </section></Shell>;
 }
 
-function Settings() {
-  const tabs = [
-    ['profile', 'Акаунт'], ['team', 'Команда й ролі'], ['score', 'Оцінка діалогів'],
-    ['integrations', 'Інтеграції'], ['billing', 'Тарифи й ліміти'], ['help', 'Інструкції']
-  ];
-  const getActiveTab = () => tabs.some(([id]) => id === window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'profile';
-  const [active, setActive] = useState(getActiveTab);
-
-  useEffect(() => {
-    const syncActive = () => setActive(getActiveTab());
-    window.addEventListener('hashchange', syncActive);
-    return () => window.removeEventListener('hashchange', syncActive);
-  }, []);
-
-  const selectTab = (id) => {
-    if (window.location.hash !== `#${id}`) window.location.hash = id;
-    else setActive(id);
-  };
-
-  return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте профілем, доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout">
-    <aside aria-label="Розділи налаштувань">{tabs.map(([id, title]) => <button key={id} type="button" className={active === id ? 'active' : ''} onClick={() => selectTab(id)}>{title}</button>)}</aside>
-    <div className="settings-content">
-      {active === 'profile' && <section className="profile-settings"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-summary"><div className="profile-avatar">D</div><div><b>Dia Consulting</b><small>Адміністратор робочого простору</small><span>dia.office.kiev@gmail.com</span></div><button type="button">Змінити аватар</button></div><div className="profile-actions"><button type="button">Редагувати профіль</button><NavLink className="button" to="/login">Керувати входом</NavLink></div></section>}
-      {active === 'team' && <section><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><p>Визначте, хто бачить діалоги, оцінки, рекомендації та налаштування.</p><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section>}
-      {active === 'score' && <section><span className="eyebrow">DIA-ОЦІНКА</span><h2>Параметри оцінки діалогів</h2><p>Dialog оцінює контакт, виявлення потреби, презентацію, заперечення, cross-sell та наступний крок.</p><div className="plans"><b>Етапи продажу · 6</b><b>Cross-sell / Up-sell</b><b>Рекомендації DIA</b></div></section>}
-      {active === 'integrations' && <section><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Підключайте телефонію, CRM і месенджери для автоматичного імпорту розмов.</p><div className="plans"><b>Ringostat · підключено</b><b>CRM · додати</b><b>Месенджери · додати</b></div></section>}
-      {active === 'billing' && <section><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section>}
-      {active === 'help' && <section><span className="eyebrow">ДОПОМОГА</span><h2>Інструкції</h2><p>Короткі інструкції для старту: підключення Ringostat, імпорт розмов, DIA-аналіз і робота з рекомендаціями.</p><div className="plans"><b>1. Підключити джерело</b><b>2. Імпортувати діалоги</b><b>3. Переглянути DIA-пораду</b></div></section>}
-    </div>
-  </div></section></Shell>;
-}
+function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте профілем, доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#profile">Акаунт</a><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="profile" className="profile-settings"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-summary"><div className="profile-avatar">D</div><div><b>Dia Consulting</b><small>Адміністратор робочого простору</small><span>dia.office.kiev@gmail.com</span></div><button type="button">Змінити аватар</button></div><div className="profile-actions"><button type="button">Редагувати профіль</button><NavLink className="button" to="/login">Керувати входом</NavLink></div></section><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
 
 function Login() {
   const [email, setEmail] = useState('');
