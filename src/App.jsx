@@ -61,15 +61,6 @@ function applyInterfaceScale(value) {
   document.documentElement.style.setProperty('--ui-scale', effective);
 }
 
-function InterfaceSizeControl() {
-  return <section id="interface" className="interface-size">
-    <span className="eyebrow">ВИГЛЯД</span>
-    <h2>Розмір інтерфейсу</h2>
-    <p>Dialog автоматично підлаштовує масштаб і розташування блоків під ширину вашого вікна.</p>
-    <div className="scale-auto-note"><span>↔</span> Автоматично підлаштовано під ширину вікна</div>
-  </section>;
-}
-
 function Shell({ children }) {
   const [noticeOpen, setNoticeOpen] = useState(false);
   return <main className="app-shell">
@@ -164,7 +155,7 @@ function Dialogs() {
   </section></Shell>;
 }
 
-function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#profile">Акаунт</a><a href="#interface">Розмір інтерфейсу</a><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="profile"><span className="eyebrow">АКАУНТ</span><h2>Профіль і доступ</h2><p>Безпечний вхід і сесія для вашого робочого простору.</p><NavLink className="lime button" to="/login">Увійти до робочого простору</NavLink></section><InterfaceSizeControl/><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
+function Settings() { return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside><a href="#team">Команда й ролі</a><a href="#score">Оцінка діалогів</a><a href="#integrations">Інтеграції</a><a href="#billing">Тарифи й ліміти</a><a href="#help">Інструкції</a></aside><div className="settings-content"><section id="team"><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section><section id="integrations"><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Дані зберігаються в PostgreSQL і будуть показані лише після входу.</p></section><section id="billing"><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section></div></div></section></Shell>; }
 
 function Login() {
   const [email, setEmail] = useState('');
