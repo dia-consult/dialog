@@ -405,6 +405,48 @@ app.post('/api/auth/magic-link', async (req, res) => {
   }
 });
 
+app.post('/api/auth/password', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  if (!/^\S+@\S+\.\S+$/.test(email) || !password) {
+    return res.status(400).json({ error: 'Введіть email і пароль' });
+  }
+  try {
+    const discovery = await stytchB2B('/v1/b2b/passwords/discovery/authenticate', {
+      email_address: email,
+      password
+    });
+    const intermediateSessionToken = discovery.intermediate_session_token;
+    if (!intermediateSessionToken) return res.status(502).json({ error: 'Не вдалося підтвердити вхід' });
+
+    const organizations = await stytchB2B('/v1/b2b/discovery/organizations', {
+      intermediate_session_token: intermediateSessionToken
+    });
+    const available = organizations.discovered_organizations || [];
+    if (available.length !== 1) {
+      return res.status(409).json({ error: 'Для цього входу потрібен вибір робочого простору. Скористайтеся входом через email.' });
+    }
+    const organizationId = available[0].organization_id || available[0].organization?.organization_id;
+    if (!organizationId) return res.status(502).json({ error: 'Не вдалося визначити робочий простір' });
+
+    const session = await stytchB2B('/v1/b2b/discovery/intermediate_sessions/exchange', {
+      intermediate_session_token: intermediateSessionToken,
+      organization_id: organizationId,
+      session_duration_minutes: 60
+    });
+    const sessionToken = session.session_token || session.member_session?.session_token;
+    if (!sessionToken) return res.status(502).json({ error: 'Не вдалося створити сесію входу' });
+    res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(sessionToken)}; ${cookieOptions()}`);
+    res.json({ ok: true });
+  } catch (error) {
+    const message = String(error.message || '').toLowerCase();
+    if (message.includes('password') && (message.includes('disabled') || message.includes('not enabled'))) {
+      return res.status(503).json({ error: 'Вхід за паролем ще не увімкнений у Stytch для цього проєкту.' });
+    }
+    res.status(401).json({ error: 'Невірний email або пароль' });
+  }
+});
+
 app.post('/api/auth/discovery/complete', async (req, res) => {
   const token = String(req.body?.token || '');
   if (!token) return res.status(400).json({ error: 'Не знайдено токен для входу' });

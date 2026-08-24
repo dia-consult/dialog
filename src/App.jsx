@@ -255,28 +255,34 @@ function Settings() {
 
 function Login() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [method, setMethod] = useState('email');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const submit = async (event) => {
     event.preventDefault(); setLoading(true); setError(''); setStatus('');
     try {
-      const response = await fetch('/api/auth/magic-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const response = await fetch(method === 'password' ? '/api/auth/password' : '/api/auth/magic-link', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(method === 'password' ? { email, password } : { email }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Не вдалося надіслати посилання');
-      setStatus('Перевірте пошту: ми надіслали безпечне посилання для входу.');
+      if (method === 'password') window.location.assign('/');
+      else setStatus('Перевірте пошту: ми надіслали безпечне посилання для входу.');
     } catch (requestError) { setError(requestError.message); } finally { setLoading(false); }
   };
   return <section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new">
     <a href="/login" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog" /></a>
-    <span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до<br/>свого простору</h1><p>Продовжуйте роботу з діалогами, командою та DIA-порадами.</p>
+    <span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до<br/>свого простору</h1><p>Оберіть безпечне посилання на email або вхід за паролем.</p>
+    <div className="login-methods" role="tablist"><button type="button" className={method === 'email' ? 'active' : ''} onClick={() => { setMethod('email'); setError(''); setStatus(''); }}>Через email</button><button type="button" className={method === 'password' ? 'active' : ''} onClick={() => { setMethod('password'); setError(''); setStatus(''); }}>За паролем</button></div>
     <form onSubmit={submit}>
       <label htmlFor="email">Робочий email</label>
       <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email"/>
-      <button className="lime login-submit" type="submit" disabled={loading}>{loading ? 'Надсилаємо…' : <>Продовжити з email <span>→</span></>}</button>
+      {method === 'password' && <><label htmlFor="password">Пароль</label><input id="password" type="password" required minLength="8" value={password} onChange={e => setPassword(e.target.value)} placeholder="Ваш пароль" autoComplete="current-password"/></>}
+      <button className="lime login-submit" type="submit" disabled={loading}>{loading ? 'Перевіряємо…' : method === 'password' ? <>Увійти <span>→</span></> : <>Продовжити з email <span>→</span></>}</button>
     </form>
     {status && <div className="login-status">{status}</div>}
     {error && <div className="login-status login-error">{error}</div>}
+    {method === 'password' && <p className="password-hint">Ще не створювали пароль? Увійдіть через email — це безпечний спосіб підтвердити доступ.</p>}
     <div className="separator"><span/>або<span/></div>
     <button className="oauth" type="button" disabled><b className="google">G</b> Google — незабаром</button>
     <small className="terms">Продовжуючи, ви погоджуєтеся з умовами використання та політикою конфіденційності DIA Consulting.</small>
