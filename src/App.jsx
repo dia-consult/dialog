@@ -155,22 +155,6 @@ function Dialogs() {
   </section></Shell>;
 }
 
-function SettingsDrawer({ type, onClose }) {
-  const copy = {
-    profile: ['Редагувати профіль', 'Оновіть дані, які бачить ваша команда.'],
-    avatar: ['Змінити аватар', 'Оберіть спосіб оновлення зображення профілю.'],
-    invite: ['Запросити учасника', 'Надішліть запрошення та задайте базову роль.'],
-    permissions: ['Налаштувати доступ', 'Оберіть, що може бачити й змінювати ця роль.'],
-    score: ['Параметри DIA-оцінки', 'Вкажіть, на яких етапах продажу має фокусуватися аналіз.'],
-    ringostat: ['Ringostat', 'Перевірте джерело дзвінків та параметри синхронізації.'],
-    crm: ['Підключити CRM', 'Оберіть CRM для передачі контактів і результатів аналізу.'],
-    messenger: ['Підключити месенджер', 'Оберіть канал, листування з якого потрібно аналізувати.'],
-    billing: ['Тариф і DIA-бали', 'Оберіть план для вашого робочого простору.'],
-    help: ['Навчальний матеріал', 'Оберіть формат, у якому зручніше пройти інструкцію.']
-  }[type] || ['Налаштування', 'Оберіть потрібні параметри.'];
-  return <div className="settings-drawer-backdrop" role="presentation" onMouseDown={onClose}><section className="settings-drawer" role="dialog" aria-modal="true" aria-label={copy[0]} onMouseDown={event => event.stopPropagation()}><button className="drawer-close" type="button" onClick={onClose}>×</button><span className="eyebrow">DIALOG</span><h2>{copy[0]}</h2><p>{copy[1]}</p><label>Режим / джерело<select defaultValue="default"><option value="default">За замовчуванням</option><option>Для всієї команди</option><option>Лише для мене</option></select></label><label>Коментар<input placeholder="Додайте короткий коментар" /></label>{['score','permissions'].includes(type) && <div className="checkbox-list"><label><input type="checkbox" defaultChecked/> Виявлення потреби</label><label><input type="checkbox" defaultChecked/> Робота із запереченнями</label><label><input type="checkbox"/> Cross-sell / Up-sell</label></div>}<button className="lime drawer-save" type="button" onClick={onClose}>Зберегти зміни</button></section></div>;
-}
-
 function Settings() {
   const tabs = [
     ['profile', 'Акаунт'], ['team', 'Команда й ролі'], ['score', 'Оцінка діалогів'],
@@ -178,7 +162,6 @@ function Settings() {
   ];
   const getActiveTab = () => tabs.some(([id]) => id === window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'profile';
   const [active, setActive] = useState(getActiveTab);
-  const [drawer, setDrawer] = useState(null);
 
   useEffect(() => {
     const syncActive = () => setActive(getActiveTab());
@@ -194,14 +177,14 @@ function Settings() {
   return <Shell><section className="page settings"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте профілем, доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout">
     <aside aria-label="Розділи налаштувань">{tabs.map(([id, title]) => <button key={id} type="button" className={active === id ? 'active' : ''} onClick={() => selectTab(id)}>{title}</button>)}</aside>
     <div className="settings-content">
-      {active === 'profile' && <section className="profile-settings"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-summary"><div className="profile-avatar">D</div><div><b>Dia Consulting</b><small>Адміністратор робочого простору</small><span>dia.office.kiev@gmail.com</span></div><button type="button" onClick={() => setDrawer('avatar')}>Змінити аватар</button></div><div className="profile-actions"><button type="button" onClick={() => setDrawer('profile')}>Редагувати профіль</button><NavLink className="button" to="/login">Керувати входом</NavLink></div></section>}
-      {active === 'team' && <section><div className="settings-section-heading"><div><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2></div><button className="lime" type="button" onClick={() => setDrawer('invite')}>+ Запросити учасника</button></div><p>Визначте, хто бачить діалоги, оцінки, рекомендації та налаштування.</p><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p><button type="button" onClick={() => setDrawer('permissions')}>Налаштувати доступ</button></article>)}</div></section>}
-      {active === 'score' && <section><div className="settings-section-heading"><div><span className="eyebrow">DIA-ОЦІНКА</span><h2>Параметри оцінки діалогів</h2></div><button className="lime" type="button" onClick={() => setDrawer('score')}>Налаштувати оцінку</button></div><p>Dialog оцінює контакт, виявлення потреби, презентацію, заперечення, cross-sell та наступний крок.</p><div className="plans"><button type="button" onClick={() => setDrawer('score')}>Етапи продажу · 6⌄</button><button type="button" onClick={() => setDrawer('score')}>Cross-sell / Up-sell⌄</button><button type="button" onClick={() => setDrawer('score')}>Рекомендації DIA⌄</button></div></section>}
-      {active === 'integrations' && <section><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Підключайте телефонію, CRM і месенджери для автоматичного імпорту розмов.</p><div className="plans"><button type="button" onClick={() => setDrawer('ringostat')}>Ringostat · підключено ⚙</button><button type="button" onClick={() => setDrawer('crm')}>CRM · додати⌄</button><button type="button" onClick={() => setDrawer('messenger')}>Месенджери · додати⌄</button></div></section>}
-      {active === 'billing' && <section><div className="settings-section-heading"><div><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2></div><button className="lime" type="button" onClick={() => setDrawer('billing')}>Керувати тарифом</button></div><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><button type="button" onClick={() => setDrawer('billing')}>Starter · $99</button><button type="button" onClick={() => setDrawer('billing')}>Growth · $349</button><button type="button" onClick={() => setDrawer('billing')}>Scale · $799</button></div></section>}
-      {active === 'help' && <section><span className="eyebrow">ДОПОМОГА</span><h2>Інструкції</h2><p>Короткі інструкції для старту: підключення Ringostat, імпорт розмов, DIA-аналіз і робота з рекомендаціями.</p><div className="plans"><button type="button" onClick={() => setDrawer('help')}>1. Підключити джерело</button><button type="button" onClick={() => setDrawer('help')}>2. Імпортувати діалоги</button><button type="button" onClick={() => setDrawer('help')}>3. Переглянути DIA-пораду</button></div></section>}
+      {active === 'profile' && <section className="profile-settings"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-summary"><div className="profile-avatar">D</div><div><b>Dia Consulting</b><small>Адміністратор робочого простору</small><span>dia.office.kiev@gmail.com</span></div><button type="button">Змінити аватар</button></div><div className="profile-actions"><button type="button">Редагувати профіль</button><NavLink className="button" to="/login">Керувати входом</NavLink></div></section>}
+      {active === 'team' && <section><span className="eyebrow">ДОСТУПИ</span><h2>Команда й ролі</h2><p>Визначте, хто бачить діалоги, оцінки, рекомендації та налаштування.</p><div className="role-grid">{[['Менеджер','Власні діалоги й прогрес'],['Керівник','Команда, оцінки та рекомендації'],['Адміністратор','Користувачі, інтеграції, тарифи']].map(([r,d])=><article key={r}><b>{r}</b><h3>{d}</h3><p>Налаштований рівень доступу для роботи у Dialog.</p></article>)}</div></section>}
+      {active === 'score' && <section><span className="eyebrow">DIA-ОЦІНКА</span><h2>Параметри оцінки діалогів</h2><p>Dialog оцінює контакт, виявлення потреби, презентацію, заперечення, cross-sell та наступний крок.</p><div className="plans"><b>Етапи продажу · 6</b><b>Cross-sell / Up-sell</b><b>Рекомендації DIA</b></div></section>}
+      {active === 'integrations' && <section><span className="eyebrow">ДЖЕРЕЛА ДАНИХ</span><h2>Інтеграції</h2><p>Ringostat підключено на сервері. Підключайте телефонію, CRM і месенджери для автоматичного імпорту розмов.</p><div className="plans"><b>Ringostat · підключено</b><b>CRM · додати</b><b>Месенджери · додати</b></div></section>}
+      {active === 'billing' && <section><span className="eyebrow">DIA-БАЛИ</span><h2>Баланс і тарифи</h2><p>68% DIA-балів залишилося у вашому поточному плані.</p><div className="plans"><b>Starter · $99</b><b>Growth · $349</b><b>Scale · $799</b></div></section>}
+      {active === 'help' && <section><span className="eyebrow">ДОПОМОГА</span><h2>Інструкції</h2><p>Короткі інструкції для старту: підключення Ringostat, імпорт розмов, DIA-аналіз і робота з рекомендаціями.</p><div className="plans"><b>1. Підключити джерело</b><b>2. Імпортувати діалоги</b><b>3. Переглянути DIA-пораду</b></div></section>}
     </div>
-  </div>{drawer && <SettingsDrawer type={drawer} onClose={() => setDrawer(null)}/>}</section></Shell>;
+  </div></section></Shell>;
 }
 
 function Login() {
