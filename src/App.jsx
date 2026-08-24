@@ -267,8 +267,8 @@ function Login() {
       setStatus('Перевірте пошту: ми надіслали безпечне посилання для входу.');
     } catch (requestError) { setError(requestError.message); } finally { setLoading(false); }
   };
-  return <Shell><section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new">
-    <NavLink to="/" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog" /></NavLink>
+  return <section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new">
+    <a href="/login" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog" /></a>
     <span className="eyebrow">БЕЗПЕЧНИЙ ВХІД</span><h1>Увійдіть до<br/>свого простору</h1><p>Продовжуйте роботу з діалогами, командою та DIA-порадами.</p>
     <form onSubmit={submit}>
       <label htmlFor="email">Робочий email</label>
@@ -280,7 +280,7 @@ function Login() {
     <div className="separator"><span/>або<span/></div>
     <button className="oauth" type="button" disabled><b className="google">G</b> Google — незабаром</button>
     <small className="terms">Продовжуючи, ви погоджуєтеся з умовами використання та політикою конфіденційності DIA Consulting.</small>
-  </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section></Shell>;
+  </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section>;
 }
 
 function Detail() {
@@ -352,7 +352,16 @@ export default function App() {
   const [shownLocation, setShownLocation] = useState(location);
   const [transition, setTransition] = useState('idle');
   const [direction, setDirection] = useState('forward');
+  const [authState, setAuthState] = useState('checking');
   const enterTimer = useRef();
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then(response => active && setAuthState(response.ok ? 'authenticated' : 'anonymous'))
+      .catch(() => active && setAuthState('anonymous'));
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     applyInterfaceScale(getInterfaceScale());
@@ -379,6 +388,10 @@ export default function App() {
       window.clearTimeout(enterTimer.current);
     };
   }, [location, shownLocation]);
+
+  if (authState === 'checking') return <main className="auth-check" aria-live="polite"><img src="/dialog-logo-final.svg" alt="dialog"/><span>Перевіряємо безпечний вхід…</span></main>;
+  if (authState === 'anonymous' && location.pathname !== '/login') return <Navigate to="/login" replace/>;
+  if (authState === 'authenticated' && location.pathname === '/login') return <Navigate to="/" replace/>;
 
   return <div className={`route-transition ${transition} ${direction}`}>
     <Routes location={shownLocation}>
