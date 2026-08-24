@@ -40,8 +40,8 @@ function formatDuration(seconds) {
   return minutes ? `${minutes} хв ${remainder ? `${remainder} с` : ''}`.trim() : `${remainder} с`;
 }
 
-const interfaceScaleMin = 0.85;
-const interfaceScaleMax = 1.2;
+const interfaceScaleMin = 1;
+const interfaceScaleMax = 1;
 
 function getInterfaceScale() {
   return interfaceScaleMax;

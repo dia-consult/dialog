@@ -1,11 +1,11 @@
 :root { --ui-scale: 1; }
 
-/* Chrome and modern desktop browsers apply zoom before layout. Compensating
-   width keeps the rounded product frame aligned with the viewport. */
+/* Responsive CSS reflows the product; do not enlarge the canvas with zoom,
+   because browser zoom would make centred navigation overlap its side tools. */
 .app-shell {
-  width: calc(100% / var(--ui-scale));
-  max-width: calc(2048px / var(--ui-scale));
-  zoom: var(--ui-scale);
+  width: 100%;
+  max-width: 2048px;
+  zoom: 1;
 }
 
 .interface-size { scroll-margin-top: 32px; }
