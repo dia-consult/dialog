@@ -236,10 +236,19 @@ function Settings() {
   const [active, setActive] = useState(valid);
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState('');
+  const [account, setAccount] = useState({ email: 'dia.office.kiev@gmail.com', name: 'Dia Consulting' });
   useEffect(() => setActive(valid), [valid]);
+  useEffect(() => { fetch('/api/auth/session').then(response => response.ok ? response.json() : null).then(data => { if (data?.member?.email) setAccount({ email: data.member.email, name: data.member.name || data.organization?.name || 'Dialog' }); }).catch(() => {}); }, []);
   const change = key => { setActive(key); window.history.replaceState(null, '', `#${key}`); };
   const openModal = (type, details = {}) => setModal({ type, ...details });
   const save = text => { setModal(null); setToast(text); window.setTimeout(() => setToast(''), 3200); };
+  const startPasswordReset = async () => {
+    try {
+      const response = await fetch('/api/auth/password/reset/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: account.email }) });
+      if (!response.ok) throw new Error();
+      save('Перевірте email: надіслано безпечне посилання для встановлення пароля.');
+    } catch { save('Не вдалося надіслати лист. Спробуйте ще раз.'); }
+  };
   const modalContent = () => {
     if (!modal) return null;
     if (modal.type === 'invite') return <SettingsModal title="Запросити учасника" onClose={() => setModal(null)} onAction={() => save('Запрошення підготовлено — його можна надіслати учаснику.')}><label>Робочий email<input type="email" placeholder="name@company.com"/></label><label>Роль<select><option>Менеджер</option><option>Керівник</option><option>Адміністратор</option></select></label></SettingsModal>;
@@ -247,10 +256,11 @@ function Settings() {
     if (modal.type === 'roles' || modal.type === 'customRole') return <SettingsModal title={modal.type === 'roles' ? 'Рівні доступу' : 'Кастомна роль'} onClose={() => setModal(null)} onAction={() => save('Налаштування ролі збережено.')}><label>{modal.type === 'customRole' ? 'Назва ролі' : 'Роль'}<input defaultValue={modal.type === 'customRole' ? 'Аудитор' : 'Керівник'}/></label>{['Діалоги та переписки','Аналітика команди','DIA-поради та задачі','Параметри оцінки','Команда й ролі','Інтеграції та тариф'].map(item => <label className="modal-permission" key={item}><span>{item}</span><select defaultValue="view"><option value="none">Немає доступу</option><option value="view">Перегляд</option><option value="work">Робота</option><option value="manage">Керування</option></select></label>)}</SettingsModal>;
     if (modal.type === 'integrationHelp') return <SettingsModal title="Як підключити інтеграції" action="Зрозуміло" onClose={() => setModal(null)} onAction={() => setModal(null)}><ol className="help-list"><li><b>Телефонія:</b> створіть API-ключ або webhook у кабінеті сервісу.</li><li><b>CRM:</b> надайте доступ до контактів, угод і менеджерів.</li><li><b>Месенджери:</b> підключіть бізнес-акаунт або бот.</li><li><b>Безпека:</b> ключі зберігаються на сервері, а не в браузері.</li></ol></SettingsModal>;
     if (modal.type === 'connectionCheck') return <SettingsModal title="Перевірка підключень" action="Перевірити" onClose={() => setModal(null)} onAction={() => save('Ringostat підключено. Інші інтеграції очікують налаштування.')}><p>Ми перевіримо доступність підключених джерел даних і повідомимо про результат.</p></SettingsModal>;
+    if (modal.type === 'security') return <SettingsModal title="Безпека і вхід" action="Надіслати посилання" onClose={() => setModal(null)} onAction={startPasswordReset}><p>Надішлемо на робочий email одноразове посилання. На сторінці Dialog ви зможете створити або змінити пароль.</p><label>Робочий email<input type="email" value={account.email} readOnly/></label><label className="check-line"><input type="checkbox" defaultChecked readOnly/> Дозволити вхід за паролем</label></SettingsModal>;
     if (modal.type === 'integration') return <SettingsModal title={`${modal.connected ? 'Налаштувати' : 'Підключити'} ${modal.name}`} onClose={() => setModal(null)} onAction={() => save(`${modal.name}: налаштування збережено у формі. Серверні ключі не показуються в інтерфейсі.`)}><p>{modal.connected ? 'Імпорт історії та нові дзвінки через webhook увімкнені.' : 'Додайте дані підключення. Вони мають зберігатися як секрет на сервері.'}</p><label>Назва підключення<input defaultValue={modal.name}/></label><label>API-ключ / токен<input type="password" placeholder="Вставте ключ із кабінету сервісу"/></label><label>Імпорт історії<select><option>Останні 30 днів</option><option>Останні 7 днів</option><option>Свій діапазон</option></select></label><label className="check-line"><input type="checkbox" defaultChecked/> Автоматично додавати нові записи до DIA-аналізу</label></SettingsModal>;
     return null;
   };
-  return <Shell><section className="page settings settings-rich"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте профілем, доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside className="settings-menu">{settingsTabs.map(([key,label]) => <button key={key} className={active === key ? 'active' : ''} onClick={() => change(key)}>{label}</button>)}<div className="menu-note"><i/> Усі зміни зберігаються для вашої команди.</div></aside><div className="settings-content rich-content">{active === 'profile' && <section className="settings-screen"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-row"><span className="profile-avatar">D</span><div><h3>Dia Consulting</h3><p>Адміністратор робочого простору<br/>dia.office.kiev@gmail.com</p></div><button className="ghost-control">Змінити аватар</button></div><div className="profile-form"><label>Назва компанії<input defaultValue="Dia Consulting"/></label><label>Короткий опис<textarea defaultValue="Аналітика продажів та клієнтських діалогів"/></label><button className="lime" onClick={() => save('Профіль збережено.')}>Зберегти зміни</button></div></section>}{active === 'team' && <TeamPanel openModal={openModal}/>} {active === 'score' && <ScorePanel showSaved={() => save('Параметри DIA-оцінки збережено.')}/>} {active === 'integrations' && <IntegrationsPanel openModal={openModal}/>} {active === 'billing' && <BillingPanel/>} {active === 'help' && <HelpPanel/>}</div></div></section>{toast && <div className="settings-toast">✓ {toast}</div>}{modalContent()}</Shell>;
+  return <Shell><section className="page settings settings-rich"><span className="eyebrow">РОБОЧИЙ ПРОСТІР</span><h1>Налаштування</h1><p>Керуйте профілем, доступами, інтеграціями, параметрами оцінки та DIA-балами.</p><div className="settings-layout"><aside className="settings-menu">{settingsTabs.map(([key,label]) => <button key={key} className={active === key ? 'active' : ''} onClick={() => change(key)}>{label}</button>)}<div className="menu-note"><i/> Усі зміни зберігаються для вашої команди.</div></aside><div className="settings-content rich-content">{active === 'profile' && <><section className="settings-screen"><span className="eyebrow">АКАУНТ</span><h2>Ваш профіль</h2><div className="profile-row"><span className="profile-avatar">D</span><div><h3>Dia Consulting</h3><p>Адміністратор робочого простору<br/>dia.office.kiev@gmail.com</p></div><button className="ghost-control">Змінити аватар</button></div><div className="profile-form"><label>Назва компанії<input defaultValue="Dia Consulting"/></label><label>Короткий опис<textarea defaultValue="Аналітика продажів та клієнтських діалогів"/></label><button className="lime" onClick={() => save('Профіль збережено.')}>Зберегти зміни</button></div></section><section className="settings-screen security-panel"><span className="eyebrow">БЕЗПЕКА</span><h2>Пароль і вхід</h2><p>Керуйте способом входу до Dialog. Паролі обробляє захищений сервіс авторизації, вони не зберігаються у Dialog.</p><div className="security-options"><article><b>Вхід через email</b><p>Увімкнено · одноразове посилання на робочий email.</p><span className="security-state">Активно</span></article><article><b>Вхід за паролем</b><p>Створіть або оновіть пароль через безпечне посилання.</p><button className="lime" onClick={() => openModal('security')}>Налаштувати пароль</button></article><article><b>Поточна сесія</b><p>Захищена сесія у цьому браузері.</p><button className="ghost-control" onClick={() => save('Щоб вийти, скористайтеся меню аватара у верхній панелі.')}>Керувати сесією</button></article></div></section></>}{active === 'team' && <TeamPanel openModal={openModal}/>} {active === 'score' && <ScorePanel showSaved={() => save('Параметри DIA-оцінки збережено.')}/>} {active === 'integrations' && <IntegrationsPanel openModal={openModal}/>} {active === 'billing' && <BillingPanel/>} {active === 'help' && <HelpPanel/>}</div></div></section>{toast && <div className="settings-toast">✓ {toast}</div>}{modalContent()}</Shell>;
 }
 
 function Login() {
@@ -282,11 +292,31 @@ function Login() {
     </form>
     {status && <div className="login-status">{status}</div>}
     {error && <div className="login-status login-error">{error}</div>}
-    {method === 'password' && <p className="password-hint">Ще не створювали пароль? Увійдіть через email — це безпечний спосіб підтвердити доступ.</p>}
+    {method === 'password' && <p className="password-hint">Ще не створювали пароль? <button type="button" className="inline-link" onClick={() => { setMethod('email'); setError(''); setStatus(''); }}>Надішліть посилання на email</button>, щоб встановити або відновити його.</p>}
     <div className="separator"><span/>або<span/></div>
     <button className="oauth" type="button" disabled><b className="google">G</b> Google — незабаром</button>
     <small className="terms">Продовжуючи, ви погоджуєтеся з умовами використання та політикою конфіденційності DIA Consulting.</small>
   </div><aside className="login-side"><span className="eyebrow">DIALOG В ОДНОМУ ВІКНІ</span><h2>Кожна розмова<br/><em>має наступний крок.</em></h2><div className="login-preview"><span>Імовірність угоди</span><b>42%</b><i/><small>+24% можливого росту після контакту</small></div><p>Ваші дані зберігаються у захищеному робочому просторі.</p></aside></section>;
+}
+
+function ResetPassword() {
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const token = new URLSearchParams(window.location.search).get('token') || '';
+  const submit = async event => {
+    event.preventDefault(); setError('');
+    if (password !== confirm) return setError('Паролі не збігаються.');
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/password/reset/complete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, password }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Не вдалося оновити пароль');
+      window.location.assign('/');
+    } catch (requestError) { setError(requestError.message); } finally { setLoading(false); }
+  };
+  return <section className="login-page login-page-new"><div className="login-orbit one"/><div className="login-orbit two"/><div className="login-card login-card-new"><a href="/login" className="login-brand"><img src="/dialog-logo-final.svg" alt="dialog"/></a><span className="eyebrow">БЕЗПЕЧНИЙ ДОСТУП</span><h1>Створіть<br/>новий пароль</h1><p>Він захистить ваш робочий простір Dialog.</p>{!token ? <div className="login-status login-error">Посилання неповне або вже недійсне. Запросіть нове в налаштуваннях профілю.</div> : <form onSubmit={submit}><label htmlFor="new-password">Новий пароль</label><input id="new-password" type="password" minLength="8" required value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password"/><label htmlFor="confirm-password">Повторіть пароль</label><input id="confirm-password" type="password" minLength="8" required value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password"/><button className="lime login-submit" type="submit" disabled={loading}>{loading ? 'Зберігаємо…' : <>Зберегти пароль <span>→</span></>}</button></form>}{error && <div className="login-status login-error">{error}</div>}</div></section>;
 }
 
 function Detail() {
@@ -396,8 +426,8 @@ export default function App() {
   }, [location, shownLocation]);
 
   if (authState === 'checking') return <main className="auth-check" aria-live="polite"><img src="/dialog-logo-final.svg" alt="dialog"/><span>Перевіряємо безпечний вхід…</span></main>;
-  if (authState === 'anonymous' && location.pathname !== '/login') return <Navigate to="/login" replace/>;
-  if (authState === 'authenticated' && location.pathname === '/login') return <Navigate to="/" replace/>;
+  if (authState === 'anonymous' && !['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/login" replace/>;
+  if (authState === 'authenticated' && ['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/" replace/>;
 
   return <div className={`route-transition ${transition} ${direction}`}>
     <Routes location={shownLocation}>
@@ -407,6 +437,7 @@ export default function App() {
       <Route path="/dialogs/:id" element={<Detail/>}/>
       <Route path="/settings" element={<Settings/>}/>
       <Route path="/login" element={<Login/>}/>
+      <Route path="/reset-password" element={<ResetPassword/>}/>
       <Route path="*" element={<Navigate to="/" replace/>}/>
     </Routes>
   </div>;

@@ -447,6 +447,46 @@ app.post('/api/auth/password', async (req, res) => {
   }
 });
 
+// Passwords are owned by Stytch. Dialog only starts the recovery flow and
+// receives the short-lived reset token back from the email link.
+app.post('/api/auth/password/reset/start', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Введіть коректний email' });
+  const publicUrl = process.env.PUBLIC_URL || 'https://dialog.dia-consulting.com.ua';
+  try {
+    await stytchB2B('/v1/b2b/passwords/discovery/email/reset/start', {
+      email_address: email,
+      reset_password_redirect_url: `${publicUrl}/reset-password`,
+      discovery_redirect_url: `${publicUrl}/authenticate`,
+      reset_password_expiration_minutes: 30
+    });
+  } catch (error) {
+    // Do not disclose whether an address belongs to a member.
+    console.warn('Password reset start was rejected by Stytch:', error.message);
+  }
+  res.status(202).json({ ok: true });
+});
+
+app.post('/api/auth/password/reset/complete', async (req, res) => {
+  const token = String(req.body?.token || '');
+  const password = String(req.body?.password || '');
+  if (!token || password.length < 8) return res.status(400).json({ error: 'Пароль має містити щонайменше 8 символів' });
+  try {
+    const discovery = await stytchB2B('/v1/b2b/passwords/discovery/email/reset', { password_reset_token: token, password });
+    const organizations = await stytchB2B('/v1/b2b/discovery/organizations', { intermediate_session_token: discovery.intermediate_session_token });
+    const available = organizations.discovered_organizations || [];
+    if (available.length !== 1) return res.status(409).json({ error: 'Оберіть робочий простір через вхід за email.' });
+    const organizationId = available[0].organization_id || available[0].organization?.organization_id;
+    const session = await stytchB2B('/v1/b2b/discovery/intermediate_sessions/exchange', { intermediate_session_token: discovery.intermediate_session_token, organization_id: organizationId, session_duration_minutes: 60 });
+    const sessionToken = session.session_token || session.member_session?.session_token;
+    if (!sessionToken) return res.status(502).json({ error: 'Не вдалося створити сесію входу' });
+    res.setHeader('Set-Cookie', `dialog_stytch_session=${encodeURIComponent(sessionToken)}; ${cookieOptions()}`);
+    res.json({ ok: true });
+  } catch {
+    res.status(400).json({ error: 'Посилання недійсне або пароль не відповідає вимогам безпеки.' });
+  }
+});
+
 app.post('/api/auth/discovery/complete', async (req, res) => {
   const token = String(req.body?.token || '');
   if (!token) return res.status(400).json({ error: 'Не знайдено токен для входу' });
