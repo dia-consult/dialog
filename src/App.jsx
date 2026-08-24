@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import './interface-scale.css';
-import './responsive.css';
 
 const nav = [
   ['/', 'Огляд'],
