@@ -28,14 +28,3 @@
 @media(max-width:420px){
   .global-nav-panel{grid-template-columns:1fr;gap:8px}.global-nav-panel .brand{display:none}.global-nav-panel .header-tools{grid-row:1;justify-self:end}.global-nav-panel .main-nav{grid-row:2;grid-column:1/-1;width:100%}.global-nav-panel .main-nav a{font-size:11px}.page{padding-left:14px;padding-right:14px}.page h1,.intro h1{font-size:clamp(31px,10vw,40px);letter-spacing:-1.5px}.player{padding:18px 14px}.recording-audio{height:44px}.scale-slider{grid-template-columns:1fr auto}.scale-slider>span:first-child{display:none}.scale-slider input{grid-column:1/-1}.wave{font-size:18px}.dialog-row{padding:16px}.notice-pop{right:0;left:auto;width:min(290px,calc(100vw - 28px))}
 }
-
-/* Between desktop and tablet, reserve real lanes for the brand and tools. */
-@media(min-width:981px) and (max-width:1449px){
-  .global-nav-panel{display:grid;grid-template-columns:minmax(96px,.7fr) minmax(320px,1.6fr) minmax(142px,.7fr);gap:14px;padding-left:20px;padding-right:20px}
-  .global-nav-panel .main-nav{position:static;transform:none;width:100%;justify-content:stretch}
-  .global-nav-panel .main-nav a{flex:1;min-width:0;padding:14px 8px;text-align:center;white-space:nowrap}
-  .global-nav-panel .brand img{width:108px}
-  .global-nav-panel .header-tools{gap:8px}
-  .global-nav-panel .balance,.global-nav-panel .bell{width:44px;height:44px}
-  .global-nav-panel .avatar{width:52px;height:52px}
-}
