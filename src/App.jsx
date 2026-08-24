@@ -427,7 +427,7 @@ export default function App() {
 
   if (authState === 'checking') return <main className="auth-check" aria-live="polite"><img src="/dialog-logo-final.svg" alt="dialog"/><span>Перевіряємо безпечний вхід…</span></main>;
   if (authState === 'anonymous' && !['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/login" replace/>;
-  if (authState === 'authenticated' && ['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/" replace/>;
+  if (authState === 'authenticated' && location.pathname === '/login') return <Navigate to="/" replace/>;
 
   return <div className={`route-transition ${transition} ${direction}`}>
     <Routes location={shownLocation}>
