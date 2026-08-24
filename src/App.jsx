@@ -42,9 +42,12 @@ function formatDuration(seconds) {
 
 const interfaceScaleMin = 0.85;
 const interfaceScaleMax = 1.2;
+const interfaceScaleStep = 0.05;
 
 function getInterfaceScale() {
-  return interfaceScaleMax;
+  const stored = Number(localStorage.getItem('dialog-interface-scale'));
+  if (!Number.isFinite(stored)) return 1;
+  return Math.min(interfaceScaleMax, Math.max(interfaceScaleMin, stored));
 }
 
 function scaleForViewport(value) {
@@ -56,17 +59,39 @@ function scaleForViewport(value) {
   return Math.min(preferred, viewportLimit);
 }
 
-function applyInterfaceScale(value) {
+function applyInterfaceScale(value, persist = false) {
   const effective = scaleForViewport(value);
   document.documentElement.style.setProperty('--ui-scale', effective);
+  if (persist) localStorage.setItem('dialog-interface-scale', value);
 }
 
 function InterfaceSizeControl() {
+  const [selected, setSelected] = useState(getInterfaceScale);
+  const [applied, setApplied] = useState(() => scaleForViewport(getInterfaceScale()));
+  const chooseScale = (value) => {
+    const next = Number(value);
+    setSelected(next);
+    applyInterfaceScale(next, true);
+    setApplied(scaleForViewport(next));
+  };
+
+  useEffect(() => {
+    const syncScale = () => setApplied(scaleForViewport(selected));
+    window.addEventListener('resize', syncScale);
+    return () => window.removeEventListener('resize', syncScale);
+  }, [selected]);
+
   return <section id="interface" className="interface-size">
     <span className="eyebrow">ВИГЛЯД</span>
     <h2>Розмір інтерфейсу</h2>
-    <p>Dialog автоматично підлаштовує масштаб і розташування блоків під ширину вашого вікна.</p>
-    <div className="scale-auto-note"><span>↔</span> Автоматично підлаштовано під ширину вікна</div>
+    <p>Налаштуйте масштаб Dialog під свій екран. Зміна застосовується одразу на всіх сторінках.</p>
+    <div className="scale-slider" aria-label="Розмір інтерфейсу">
+      <span>85%</span>
+      <input type="range" min={interfaceScaleMin} max={interfaceScaleMax} step={interfaceScaleStep} value={selected} onChange={(event) => chooseScale(event.target.value)} aria-label="Масштаб інтерфейсу" />
+      <span>120%</span>
+      <output title={applied < selected ? 'Масштаб тимчасово зменшено, щоб інтерфейс повністю помістився' : undefined}>{Math.round(applied * 100)}%</output>
+    </div>
+    {applied < selected && <small className="scale-fit-note">Автоматично підлаштовано під ширину вікна</small>}
   </section>;
 }
 

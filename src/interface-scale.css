@@ -14,8 +14,6 @@
 .scale-slider input { width: 100%; accent-color: #b8ff12; cursor: pointer; }
 .scale-slider output { min-width: 46px; color: #b8ff12; font-size: 14px; font-weight: 800; text-align: right; }
 .scale-fit-note { display: block; margin-top: 10px; color: #9db0c8; font-size: 12px; }
-.scale-auto-note { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 13px 16px; border: 1px solid #3a526f; border-radius: 15px; color: #c8d5e5; font-size: 14px; font-weight: 700; background: #172840; }
-.scale-auto-note span { color: #b8ff12; font-size: 20px; line-height: 1; }
 
 @media (max-width: 900px) {
   .app-shell { width: 100%; zoom: 1; }
