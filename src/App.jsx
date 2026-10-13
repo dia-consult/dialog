@@ -3,6 +3,10 @@ import { Navigate, NavLink, Route, Routes, useLocation, useParams } from 'react-
 import './interface-scale.css';
 import './settings-ui.css';
 
+// Temporary public MVP mode. Keep server-side API authentication enabled so
+// opening the product shell never exposes call recordings or client data.
+const PUBLIC_MVP_MODE = true;
+
 const nav = [
   ['/', 'Огляд'],
   ['/dialogs', 'Діалоги'],
@@ -388,10 +392,11 @@ export default function App() {
   const [shownLocation, setShownLocation] = useState(location);
   const [transition, setTransition] = useState('idle');
   const [direction, setDirection] = useState('forward');
-  const [authState, setAuthState] = useState('checking');
+  const [authState, setAuthState] = useState(PUBLIC_MVP_MODE ? 'public' : 'checking');
   const enterTimer = useRef();
 
   useEffect(() => {
+    if (PUBLIC_MVP_MODE) return undefined;
     let active = true;
     fetch('/api/auth/session', { cache: 'no-store' })
       .then(response => active && setAuthState(response.ok ? 'authenticated' : 'anonymous'))
@@ -426,8 +431,9 @@ export default function App() {
   }, [location, shownLocation]);
 
   if (authState === 'checking') return <main className="auth-check" aria-live="polite"><img src="/dialog-logo-final.svg" alt="dialog"/><span>Перевіряємо безпечний вхід…</span></main>;
-  if (authState === 'anonymous' && !['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/login" replace/>;
-  if (authState === 'authenticated' && location.pathname === '/login') return <Navigate to="/" replace/>;
+  if (PUBLIC_MVP_MODE && ['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/" replace/>;
+  if (!PUBLIC_MVP_MODE && authState === 'anonymous' && !['/login', '/reset-password'].includes(location.pathname)) return <Navigate to="/login" replace/>;
+  if (!PUBLIC_MVP_MODE && authState === 'authenticated' && location.pathname === '/login') return <Navigate to="/" replace/>;
 
   return <div className={`route-transition ${transition} ${direction}`}>
     <Routes location={shownLocation}>
