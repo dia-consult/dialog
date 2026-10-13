@@ -178,7 +178,7 @@ function Dialogs() {
   return <Shell><section className="page"><span className="eyebrow">РОБОЧИЙ ПРОСТІР · ДІАЛОГИ</span><h1>Усі діалоги</h1><p>Реальні дзвінки з Ringostat, їхні записи, транскрипції та DIA-оцінки.</p>
     <div className="filters"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Пошук клієнта, номера або менеджера"/><button>Усі канали⌄</button><button>За 30 днів⌄</button><button>Усі менеджери⌄</button><button className="outline">Потребують уваги&nbsp; {calls.filter(call => (call.evaluation?.contact_probability ?? 100) < 50).length}</button><button className="lime" onClick={syncRingostat} disabled={syncing}>{syncing ? 'Імпортуємо…' : '↻ Оновити Ringostat'}</button><button className="lime">↑ Завантажити з ПК</button></div>
     {message && <div className="dialog-notice">{message}</div>}
-    {error && <div className="dialog-notice error">{error}{error === 'Потрібен вхід' && <> · <NavLink to="/login">Увійти</NavLink></>}</div>}
+    {error && <div className="dialog-notice error">{error}</div>}
     <div className="legend"><i className="green"/>75–100% висока імовірність <i className="amber"/>50–74% можна покращити <i className="red"/>0–49% потрібна увага</div>
     <div className="table"><div className="table-head"><span>Діалог ↕</span><span>Клієнт / канал</span><span>Менеджер</span><span>Імовірність контакту</span><span>DIA-висновок</span><span/></div>
       {loading && <div className="table-empty">Завантажуємо реальні дзвінки…</div>}
