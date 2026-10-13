@@ -12,6 +12,9 @@ const port = Number(process.env.PORT || 3000);
 const pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL }) : null;
 const MAX_IMPORT_CALLS = Math.min(Math.max(Number(process.env.RINGOSTAT_IMPORT_LIMIT || 10), 1), 25);
 const MAX_AUDIO_BYTES = Math.min(Math.max(Number(process.env.DIALOG_MAX_AUDIO_BYTES || 20 * 1024 * 1024), 1_000_000), 30 * 1024 * 1024);
+// Temporary open-demo setting. Set DIALOG_PUBLIC_MVP=false to restore Stytch
+// protection for call data, recordings, analyses and management actions.
+const PUBLIC_MVP_MODE = process.env.DIALOG_PUBLIC_MVP !== 'false';
 const runningAnalyses = new Set();
 
 app.disable('x-powered-by');
@@ -53,6 +56,10 @@ async function authenticatedMember(request) {
   } catch {
     return null;
   }
+}
+
+async function hasWorkspaceAccess(request) {
+  return PUBLIC_MVP_MODE || Boolean(await authenticatedMember(request));
 }
 
 function cookieOptions() {
@@ -182,6 +189,14 @@ function openRouterConfigured() {
   return Boolean(process.env.OPENROUTER_API_KEY);
 }
 
+function fishAudioConfigured() {
+  return Boolean(process.env.FISH_AUDIO_API_KEY);
+}
+
+function analysisPipelineConfigured() {
+  return fishAudioConfigured() && openRouterConfigured();
+}
+
 function parseJson(value) {
   const trimmed = String(value || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
   return JSON.parse(trimmed);
@@ -238,24 +253,25 @@ async function transcribeRecording(url) {
   const format = audioFormat(url, audio.headers.get('content-type') || '');
   if (!format) throw new Error('Невідомий формат аудіозапису');
 
-  const response = await fetch('https://openrouter.ai/api/v1/audio/transcriptions', {
+  const mimeByFormat = {
+    wav: 'audio/wav', mp3: 'audio/mpeg', ogg: 'audio/ogg', aac: 'audio/aac',
+    m4a: 'audio/mp4', webm: 'audio/webm',
+  };
+  const form = new FormData();
+  form.append('audio', new Blob([bytes], { type: mimeByFormat[format] || 'application/octet-stream' }), `recording.${format}`);
+  form.append('language', process.env.FISH_AUDIO_LANGUAGE || 'uk');
+  form.append('ignore_timestamps', 'true');
+
+  const response = await fetch('https://api.fish.audio/v1/asr', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.PUBLIC_URL || 'https://dialog.dia-consulting.com.ua',
-      'X-OpenRouter-Title': 'Dialog',
+      Authorization: `Bearer ${process.env.FISH_AUDIO_API_KEY}`,
     },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_STT_MODEL || 'openai/whisper-1',
-      input_audio: { data: bytes.toString('base64'), format },
-      language: 'uk',
-      temperature: 0,
-    }),
+    body: form,
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error?.message || `Помилка транскрипції (${response.status})`);
-  return { text: String(payload.text || '').trim(), cost: Number(payload?.usage?.cost || 0) };
+  if (!response.ok) throw new Error(payload?.detail || payload?.message || `Помилка Fish Audio транскрипції (${response.status})`);
+  return { text: String(payload.text || '').trim(), cost: 0 };
 }
 
 async function evaluateTranscript(transcript) {
@@ -314,7 +330,7 @@ async function runAnalysis(callId) {
 }
 
 async function enqueueAnalysis(callIds) {
-  if (!pool || !openRouterConfigured()) return { queued: 0, reason: 'OPENROUTER_API_KEY is not configured' };
+  if (!pool || !analysisPipelineConfigured()) return { queued: 0, reason: 'FISH_AUDIO_API_KEY or OPENROUTER_API_KEY is not configured' };
   const uniqueIds = [...new Set(callIds)].slice(0, MAX_IMPORT_CALLS);
   const queuedIds = [];
   for (const callId of uniqueIds) {
@@ -565,6 +581,15 @@ app.get('/authenticate', async (req, res) => {
 });
 
 app.get('/api/auth/session', async (req, res) => {
+  if (PUBLIC_MVP_MODE) {
+    return res.json({
+      authenticated: true,
+      public: true,
+      member: { id: 'public-mvp', email: null, name: 'Публічний доступ' },
+      organization: { id: 'public-mvp', name: 'Dialog MVP' },
+      roles: ['public_mvp']
+    });
+  }
   const session = await authenticatedMember(req);
   if (!session) return res.status(401).json({ authenticated: false });
   res.json({
@@ -581,7 +606,7 @@ app.post('/api/auth/logout', (_req, res) => {
 });
 
 app.get('/api/integrations/ringostat', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
   res.json({
     provider: 'ringostat',
     configured: configured(),
@@ -591,7 +616,7 @@ app.get('/api/integrations/ringostat', async (req, res) => {
 });
 
 app.post('/api/ringostat/sync', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
   if (!configured()) return res.status(503).json({ error: 'Ringostat or database is not configured' });
   try {
     const payload = await fetchRingostatCalls({ from: req.body?.from, to: req.body?.to });
@@ -605,7 +630,7 @@ app.post('/api/ringostat/sync', async (req, res) => {
 });
 
 app.get('/api/dialogs', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
   if (!pool) return res.status(503).json({ error: 'База даних недоступна' });
   const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 100);
   try {
@@ -632,14 +657,14 @@ app.get('/api/dialogs', async (req, res) => {
       evaluation: row.evaluation || null,
       error: row.error_message || null,
     }));
-    res.json({ calls, configured: configured(), openRouter: openRouterConfigured() });
+    res.json({ calls, configured: configured(), fishAudio: fishAudioConfigured(), openRouter: openRouterConfigured() });
   } catch (error) {
     res.status(500).json({ error: 'Не вдалося отримати список діалогів' });
   }
 });
 
 app.get('/api/dialogs/:id', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
   if (!pool) return res.status(503).json({ error: 'База даних недоступна' });
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: 'Некоректний ідентифікатор діалогу' });
@@ -681,7 +706,7 @@ app.get('/api/dialogs/:id', async (req, res) => {
 });
 
 app.get('/api/dialogs/:id/audio', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
   if (!pool) return res.status(503).json({ error: 'База даних недоступна' });
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: 'Некоректний ідентифікатор діалогу' });
@@ -705,8 +730,8 @@ app.get('/api/dialogs/:id/audio', async (req, res) => {
 });
 
 app.post('/api/dialogs/:id/analyze', async (req, res) => {
-  if (!await authenticatedMember(req)) return res.status(401).json({ error: 'Потрібен вхід' });
-  if (!pool || !openRouterConfigured()) return res.status(503).json({ error: 'OpenRouter або база даних не налаштовані' });
+  if (!await hasWorkspaceAccess(req)) return res.status(401).json({ error: 'Потрібен вхід' });
+  if (!pool || !analysisPipelineConfigured()) return res.status(503).json({ error: 'Fish Audio, OpenRouter або база даних не налаштовані' });
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return res.status(400).json({ error: 'Некоректний ідентифікатор діалогу' });
   const exists = await pool.query('SELECT id, recording_url FROM ringostat_calls WHERE id = $1 AND project_id = $2', [id, process.env.RINGOSTAT_PROJECT_ID]);
